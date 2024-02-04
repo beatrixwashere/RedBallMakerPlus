@@ -2,7 +2,7 @@
 
 [ext_resource type="Texture2D" uid="uid://upmcqv0i3tpp" path="res://images/sky.png" id="1_iag8v"]
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_ptw04"]
-[ext_resource type="Texture2D" uid="uid://dytryt6od1hgl" path="res://images/ui.png" id="3_ujrmm"]
+[ext_resource type="Texture2D" uid="uid://dytryt6od1hgl" path="res://images/ui_layout.png" id="3_ujrmm"]
 [ext_resource type="FontFile" uid="uid://4fm13rlrv0pl" path="res://images/kronika.ttf" id="4_efxvl"]
 [ext_resource type="Texture2D" uid="uid://qsq3j3x401p5" path="res://images/redball.png" id="4_o1pps"]
 
@@ -11,7 +11,6 @@ script = ExtResource("1_ptw04")
 
 [node name="level" type="Node2D" parent="."]
 unique_name_in_owner = true
-scale = Vector2(2, 2)
 
 [node name="ui" type="Camera2D" parent="."]
 unique_name_in_owner = true
@@ -34,7 +33,7 @@ texture = ExtResource("3_ujrmm")
 self_modulate = Color(1, 1, 1, 0.4)
 texture_filter = 1
 position = Vector2(-128, 0)
-scale = Vector2(4, 4)
+scale = Vector2(2, 2)
 texture = ExtResource("4_o1pps")
 
 [node name="menus" type="Node2D" parent="ui"]
@@ -55,10 +54,15 @@ offset_top = -448.0
 offset_right = -704.0
 offset_bottom = 320.0
 
-[node name="container" type="VBoxContainer" parent="ui/menus/obj_list"]
+[node name="container" type="ScrollContainer" parent="ui/menus/obj_list"]
 layout_mode = 0
 offset_right = 256.0
 offset_bottom = 768.0
+vertical_scroll_mode = 2
+
+[node name="list" type="VBoxContainer" parent="ui/menus/obj_list/container"]
+layout_mode = 2
+theme_override_constants/separation = 64
 
 [node name="new_block" type="Button" parent="ui/menus/obj_list"]
 layout_mode = 0
@@ -87,6 +91,26 @@ theme_override_font_sizes/font_size = 40
 text = "export"
 flat = true
 
+[node name="export_save" type="Button" parent="ui/menus/row_options"]
+layout_mode = 0
+offset_left = 192.0
+offset_right = 384.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 40
+text = "save"
+flat = true
+
+[node name="import_save" type="Button" parent="ui/menus/row_options"]
+layout_mode = 0
+offset_left = 384.0
+offset_right = 576.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 40
+text = "load"
+flat = true
+
 [node name="row_info" type="Control" parent="ui/menus"]
 layout_mode = 3
 anchors_preset = 0
@@ -108,12 +132,16 @@ vertical_alignment = 1
 [node name="files" type="FileDialog" parent="."]
 unique_name_in_owner = true
 mode = 2
+title = "Open a File"
 initial_position = 1
 size = Vector2i(800, 600)
-ok_button_text = "Save"
+content_scale_aspect = 4
+ok_button_text = "Open"
 dialog_hide_on_ok = true
+file_mode = 0
 access = 2
 
 [connection signal="button_down" from="ui/menus/obj_list/new_block" to="." method="new_block"]
-[connection signal="button_down" from="ui/menus/row_options/export_level" to="." method="select_export_file"]
-[connection signal="file_selected" from="files" to="." method="export_level"]
+[connection signal="button_down" from="ui/menus/row_options/export_level" to="." method="select_file" binds= ["e_level"]]
+[connection signal="button_down" from="ui/menus/row_options/export_save" to="." method="select_file" binds= ["e_save"]]
+[connection signal="button_down" from="ui/menus/row_options/import_save" to="." method="select_file" binds= ["i_save"]]
