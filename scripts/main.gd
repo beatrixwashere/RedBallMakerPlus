@@ -16,26 +16,31 @@ func _input(event:InputEvent)->void:
 			MOUSE_BUTTON_MIDDLE:
 				is_moving_scene = event.is_pressed()
 			MOUSE_BUTTON_WHEEL_UP:
-				if event.is_pressed() && %level.scale.x < 4.99:
-					%level.scale += Vector2(0.1,0.1)
-					%level.position *= %ui.zoom.x/(%ui.zoom.x-0.1)
+				if event.is_pressed() && %ui.zoom.x < 4.99:
+					%ui.zoom += Vector2(0.1,0.1)
+					%ui.scale = Vector2(1,1)/%ui.zoom
+					%ui/rbref.scale = %ui.zoom*2
+					update_info()
 			MOUSE_BUTTON_WHEEL_DOWN:
-				if event.is_pressed() && %level.scale.x > 0.11:
-					%level.scale -= Vector2(0.1,0.1)
-					%level.position *= %ui.zoom.x/(%ui.zoom.x+0.1)
+				if event.is_pressed() && %ui.zoom.x > 0.11:
+					%ui.zoom -= Vector2(0.1,0.1)
+					%ui.scale = Vector2(1,1)/%ui.zoom
+					%ui/rbref.scale = %ui.zoom*2
+					update_info()
 	# mouse motion
 	if event is InputEventMouseMotion:
 		if is_moving_scene:
-			%level.position += event.relative*%level.scale.x
+			%ui.position -= event.relative*%level.scale.x
+			update_info()
 # creates a new block in the level
 func new_block()->void:
 	# create and setup block data
 	var n_data:Block = Block.new()
 	level_blocks.append(n_data)
-	n_data.polygon.append(Vector2(0,0)-round(%level.position))
-	n_data.polygon.append(Vector2(100,0)-round(%level.position))
-	n_data.polygon.append(Vector2(100,100)-round(%level.position))
-	n_data.polygon.append(Vector2(0,100)-round(%level.position))
+	n_data.polygon.append(Vector2(0,0)+round(%ui.position))
+	n_data.polygon.append(Vector2(50,0)+round(%ui.position))
+	n_data.polygon.append(Vector2(50,50)+round(%ui.position))
+	n_data.polygon.append(Vector2(0,50)+round(%ui.position))
 	# add block to scene
 	var n_block_obj:Polygon2D = Polygon2D.new()
 	n_block_obj.set_color(Color(0,0,0,1))
@@ -53,3 +58,6 @@ func export_level(filepath:String)->void:
 	# save file
 	var levelfile:FileAccess = FileAccess.open(filepath, FileAccess.WRITE)
 	levelfile.store_line(export_string)
+# updates row_info text
+func update_info()->void:
+	$ui/menus/row_info/position.text = "( "+str(round(%ui.position.x))+" , "+str(round(%ui.position.y))+" )"
