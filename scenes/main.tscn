@@ -1,17 +1,22 @@
-[gd_scene load_steps=4 format=3 uid="uid://cjoe6yrdhaj2k"]
+[gd_scene load_steps=6 format=3 uid="uid://cjoe6yrdhaj2k"]
 
 [ext_resource type="Texture2D" uid="uid://upmcqv0i3tpp" path="res://images/sky.png" id="1_iag8v"]
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_ptw04"]
 [ext_resource type="Texture2D" uid="uid://dytryt6od1hgl" path="res://images/ui.png" id="3_ujrmm"]
+[ext_resource type="FontFile" uid="uid://4fm13rlrv0pl" path="res://images/kronika.ttf" id="4_efxvl"]
+[ext_resource type="Texture2D" uid="uid://qsq3j3x401p5" path="res://images/redball.png" id="4_o1pps"]
 
 [node name="main" type="Node"]
 script = ExtResource("1_ptw04")
 
 [node name="level" type="Node2D" parent="."]
 unique_name_in_owner = true
+scale = Vector2(2, 2)
 
 [node name="ui" type="Camera2D" parent="."]
 unique_name_in_owner = true
+scale = Vector2(0.5, 0.5)
+zoom = Vector2(2, 2)
 
 [node name="bg" type="Sprite2D" parent="ui"]
 z_index = -100
@@ -24,6 +29,13 @@ texture_filter = 1
 position = Vector2(0, 3.05176e-05)
 scale = Vector2(8, 8.05926)
 texture = ExtResource("3_ujrmm")
+
+[node name="rbref" type="Sprite2D" parent="ui"]
+self_modulate = Color(1, 1, 1, 0.4)
+texture_filter = 1
+position = Vector2(-128, 0)
+scale = Vector2(4, 4)
+texture = ExtResource("4_o1pps")
 
 [node name="menus" type="Node2D" parent="ui"]
 
@@ -53,8 +65,9 @@ layout_mode = 0
 offset_top = 768.0
 offset_right = 256.0
 offset_bottom = 896.0
-theme_override_font_sizes/font_size = 80
-text = "+"
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 50
+text = "+ new +"
 flat = true
 
 [node name="row_options" type="Control" parent="ui/menus"]
@@ -69,8 +82,9 @@ offset_bottom = -448.0
 layout_mode = 0
 offset_right = 192.0
 offset_bottom = 96.0
-theme_override_font_sizes/font_size = 60
-text = "E"
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 40
+text = "export"
 flat = true
 
 [node name="row_info" type="Control" parent="ui/menus"]
@@ -80,6 +94,16 @@ offset_left = -960.0
 offset_top = 448.0
 offset_right = 960.0
 offset_bottom = 544.0
+
+[node name="position" type="Label" parent="ui/menus/row_info"]
+layout_mode = 0
+offset_right = 384.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 40
+text = "( 0 , 0 )"
+horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="files" type="FileDialog" parent="."]
 unique_name_in_owner = true
