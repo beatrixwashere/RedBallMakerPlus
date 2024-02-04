@@ -49,11 +49,7 @@ func export_level(filepath:String)->void:
 	# generate level string
 	var export_string:String = ""
 	for i in level_blocks:
-		export_string += "b_0,n,0,1,0.2:p,"
-		for j in i.polygon:
-			export_string += str(j.x) + "," + str(j.y) + ","
-		export_string = export_string.erase(export_string.length()-1)
-		export_string += ":0,1:1,0|"
+		export_string += i.encode_level()
 	# save file
 	var levelfile:FileAccess = FileAccess.open(filepath, FileAccess.WRITE)
 	levelfile.store_line(export_string)
