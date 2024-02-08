@@ -19,8 +19,8 @@ zoom = Vector2(2, 2)
 
 [node name="bg" type="Sprite2D" parent="ui"]
 z_index = -100
-position = Vector2(-128, -2.28882e-05)
-scale = Vector2(1.61917, 1.59734)
+position = Vector2(-63.9992, -2.28882e-05)
+scale = Vector2(1.78961, 1.59734)
 texture = ExtResource("1_iag8v")
 
 [node name="layout" type="Sprite2D" parent="ui"]
@@ -32,7 +32,6 @@ texture = ExtResource("3_ujrmm")
 [node name="rbref" type="Sprite2D" parent="ui"]
 self_modulate = Color(1, 1, 1, 0.4)
 texture_filter = 1
-position = Vector2(-128, 0)
 scale = Vector2(2, 2)
 texture = ExtResource("4_o1pps")
 
@@ -41,10 +40,45 @@ texture = ExtResource("4_o1pps")
 [node name="obj_edit" type="Control" parent="ui/menus"]
 layout_mode = 3
 anchors_preset = 0
-offset_left = 448.0
+offset_left = 576.0
 offset_top = -448.0
 offset_right = 960.0
-offset_bottom = 448.0
+offset_bottom = 320.0
+
+[node name="container" type="ScrollContainer" parent="ui/menus/obj_edit"]
+layout_mode = 0
+offset_right = 384.0
+offset_bottom = 768.0
+vertical_scroll_mode = 2
+
+[node name="editlist" type="VBoxContainer" parent="ui/menus/obj_edit/container"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 96
+
+[node name="scrollfix" type="Control" parent="ui/menus/obj_edit/container/editlist"]
+layout_mode = 2
+
+[node name="apply_edits" type="Button" parent="ui/menus/obj_edit"]
+layout_mode = 0
+offset_top = 768.0
+offset_right = 192.0
+offset_bottom = 896.0
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 50
+text = "apply"
+flat = true
+
+[node name="delete_block" type="Button" parent="ui/menus/obj_edit"]
+layout_mode = 0
+offset_left = 192.0
+offset_top = 768.0
+offset_right = 384.0
+offset_bottom = 896.0
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 50
+text = "delete"
+flat = true
 
 [node name="obj_list" type="Control" parent="ui/menus"]
 layout_mode = 3
@@ -60,9 +94,13 @@ offset_right = 256.0
 offset_bottom = 768.0
 vertical_scroll_mode = 2
 
-[node name="list" type="VBoxContainer" parent="ui/menus/obj_list/container"]
+[node name="blocklist" type="VBoxContainer" parent="ui/menus/obj_list/container"]
+unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/separation = 64
+
+[node name="scrollfix" type="Control" parent="ui/menus/obj_list/container/blocklist"]
+layout_mode = 2
 
 [node name="new_block" type="Button" parent="ui/menus/obj_list"]
 layout_mode = 0
@@ -70,8 +108,8 @@ offset_top = 768.0
 offset_right = 256.0
 offset_bottom = 896.0
 theme_override_fonts/font = ExtResource("4_efxvl")
-theme_override_font_sizes/font_size = 50
-text = "+ new +"
+theme_override_font_sizes/font_size = 60
+text = "new"
 flat = true
 
 [node name="row_options" type="Control" parent="ui/menus"]
@@ -111,6 +149,16 @@ theme_override_font_sizes/font_size = 40
 text = "load"
 flat = true
 
+[node name="exit_app" type="Button" parent="ui/menus/row_options"]
+layout_mode = 0
+offset_left = 1728.0
+offset_right = 1920.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 40
+text = "exit"
+flat = true
+
 [node name="row_info" type="Control" parent="ui/menus"]
 layout_mode = 3
 anchors_preset = 0
@@ -141,7 +189,9 @@ dialog_hide_on_ok = true
 file_mode = 0
 access = 2
 
+[connection signal="button_down" from="ui/menus/obj_edit/apply_edits" to="." method="apply_edits"]
 [connection signal="button_down" from="ui/menus/obj_list/new_block" to="." method="new_block"]
 [connection signal="button_down" from="ui/menus/row_options/export_level" to="." method="select_file" binds= ["e_level"]]
 [connection signal="button_down" from="ui/menus/row_options/export_save" to="." method="select_file" binds= ["e_save"]]
 [connection signal="button_down" from="ui/menus/row_options/import_save" to="." method="select_file" binds= ["i_save"]]
+[connection signal="button_down" from="ui/menus/row_options/exit_app" to="." method="exit_app"]
