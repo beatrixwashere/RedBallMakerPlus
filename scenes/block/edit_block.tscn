@@ -1,0 +1,59 @@
+[gd_scene load_steps=3 format=3 uid="uid://dhho5ojde1a1p"]
+
+[ext_resource type="Texture2D" uid="uid://c4qok0k14d1x2" path="res://images/ui_editobj.png" id="1_fmh18"]
+[ext_resource type="FontFile" uid="uid://4fm13rlrv0pl" path="res://images/kronika.ttf" id="2_hyy5k"]
+
+[node name="edit_block" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="sprite" type="Sprite2D" parent="."]
+texture_filter = 1
+scale = Vector2(8, 8)
+texture = ExtResource("1_fmh18")
+centered = false
+
+[node name="text" type="Label" parent="."]
+layout_mode = 0
+offset_right = 192.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("2_hyy5k")
+theme_override_font_sizes/font_size = 30
+text = "block.var"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="edit" type="LineEdit" parent="."]
+layout_mode = 0
+offset_left = 208.0
+offset_right = 368.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("2_hyy5k")
+theme_override_font_sizes/font_size = 30
+placeholder_text = "type"
+alignment = 1
+flat = true
+
+[node name="popup_edit" type="Button" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 192.0
+offset_right = 384.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("2_hyy5k")
+theme_override_font_sizes/font_size = 30
+text = "edit"
+flat = true
+
+[node name="popup_color" type="Window" parent="."]
+initial_position = 1
+size = Vector2i(384, 512)
+visible = false
+
+[node name="color" type="ColorPicker" parent="popup_color"]
+offset_right = 384.0
+offset_bottom = 513.0
+edit_alpha = false
+sampler_visible = false
+
+[connection signal="close_requested" from="popup_color" to="popup_color" method="set_visible" binds= [false]]
