@@ -39,22 +39,25 @@ var listobj:Node
 # encode into level format
 func encode_level()->String:
 	var output:String = ""
-	output += typestr[type]+"_"+name+","
+	# header
+	output += typestr[type]+"_"+name+",\n\t"
+	# behavior
 	if type == blocktypes.POLYGON || type == blocktypes.CIRCLE:
 		output += flags+","+str(mass)+","+str(friction)+","+str(restitution)
 	elif type == blocktypes.CHECKPOINT || type == blocktypes.FLAG:
 		output += "b_ground"
-	output += ":"+shapestr[type]+","
+	# shape & color
+	output += ":\n\t"+shapestr[type]+","
 	if type == blocktypes.POLYGON:
 		for i in polygon: output += str(i.x)+","+str(i.y)+","
 		output = output.erase(output.length()-1)
-		output += ":0x"+fill.to_html(false)+",1:1,0x"+outline.to_html(false)
+		output += ":\n\t0x"+fill.to_html(false)+",1:1,0x"+outline.to_html(false)
 	if type == blocktypes.CIRCLE:
-		output += str(position.x)+","+str(position.y)
-		output += ":0x"+fill.to_html(false)+",1:1,0x"+outline.to_html(false)
+		output += str(position.x)+","+str(position.y)+","+str(radius)
+		output += ":\n\t0x"+fill.to_html(false)+",1:1,0x"+outline.to_html(false)
 	elif type == blocktypes.CHECKPOINT || type == blocktypes.FLAG:
 		output += str(position.x)+","+str(position.y)+",0"
-	output += "|"
+	output += "|\n"
 	return output
 # save data into rbmp file
 func save_data(file:FileAccess)->void:
