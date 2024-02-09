@@ -1,10 +1,14 @@
-[gd_scene load_steps=6 format=3 uid="uid://cjoe6yrdhaj2k"]
+[gd_scene load_steps=10 format=3 uid="uid://cjoe6yrdhaj2k"]
 
 [ext_resource type="Texture2D" uid="uid://upmcqv0i3tpp" path="res://images/sky.png" id="1_iag8v"]
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_ptw04"]
 [ext_resource type="Texture2D" uid="uid://dytryt6od1hgl" path="res://images/ui/ui_layout.png" id="3_ujrmm"]
 [ext_resource type="FontFile" uid="uid://4fm13rlrv0pl" path="res://images/kronika.ttf" id="4_efxvl"]
 [ext_resource type="Texture2D" uid="uid://qsq3j3x401p5" path="res://images/redball.png" id="4_o1pps"]
+[ext_resource type="Texture2D" uid="uid://dy7fgxdty5ixn" path="res://images/icons/icon_polygon.png" id="6_xe8nl"]
+[ext_resource type="Texture2D" uid="uid://bimj0vfrnad4w" path="res://images/icons/icon_circle.png" id="7_cutm6"]
+[ext_resource type="Texture2D" uid="uid://hsx2ol2mxpxc" path="res://images/icons/icon_checkpoint.png" id="8_rn8fh"]
+[ext_resource type="Texture2D" uid="uid://dkcl28ke5ynye" path="res://images/icons/icon_flag.png" id="9_bv1hy"]
 
 [node name="main" type="Node"]
 script = ExtResource("1_ptw04")
@@ -13,8 +17,14 @@ script = ExtResource("1_ptw04")
 unique_name_in_owner = true
 texture_filter = 1
 
+[node name="death" type="Line2D" parent="level"]
+points = PackedVector2Array(10000, 585, -10000, 585)
+width = 50.0
+default_color = Color(1, 0, 0, 0.75)
+
 [node name="ui" type="Camera2D" parent="."]
 unique_name_in_owner = true
+texture_filter = 1
 scale = Vector2(0.5, 0.5)
 zoom = Vector2(2, 2)
 
@@ -110,8 +120,12 @@ offset_right = 96.0
 offset_bottom = 896.0
 theme_override_fonts/font = ExtResource("4_efxvl")
 theme_override_font_sizes/font_size = 60
-text = "+"
 flat = true
+
+[node name="icon" type="Sprite2D" parent="ui/menus/obj_list/new_polygon"]
+position = Vector2(48, 64)
+scale = Vector2(6, 6)
+texture = ExtResource("6_xe8nl")
 
 [node name="new_circle" type="Button" parent="ui/menus/obj_list"]
 layout_mode = 0
@@ -121,8 +135,12 @@ offset_right = 192.0
 offset_bottom = 896.0
 theme_override_fonts/font = ExtResource("4_efxvl")
 theme_override_font_sizes/font_size = 60
-text = "+"
 flat = true
+
+[node name="icon" type="Sprite2D" parent="ui/menus/obj_list/new_circle"]
+position = Vector2(48, 64)
+scale = Vector2(6, 6)
+texture = ExtResource("7_cutm6")
 
 [node name="new_checkpoint" type="Button" parent="ui/menus/obj_list"]
 layout_mode = 0
@@ -132,8 +150,12 @@ offset_right = 288.0
 offset_bottom = 896.0
 theme_override_fonts/font = ExtResource("4_efxvl")
 theme_override_font_sizes/font_size = 60
-text = "+"
 flat = true
+
+[node name="icon" type="Sprite2D" parent="ui/menus/obj_list/new_checkpoint"]
+position = Vector2(48, 64)
+scale = Vector2(6, 6)
+texture = ExtResource("8_rn8fh")
 
 [node name="new_flag" type="Button" parent="ui/menus/obj_list"]
 layout_mode = 0
@@ -143,8 +165,12 @@ offset_right = 384.0
 offset_bottom = 896.0
 theme_override_fonts/font = ExtResource("4_efxvl")
 theme_override_font_sizes/font_size = 60
-text = "+"
 flat = true
+
+[node name="icon" type="Sprite2D" parent="ui/menus/obj_list/new_flag"]
+position = Vector2(48, 64)
+scale = Vector2(6, 6)
+texture = ExtResource("9_bv1hy")
 
 [node name="row_options" type="Control" parent="ui/menus"]
 layout_mode = 3
@@ -155,7 +181,6 @@ offset_right = 960.0
 offset_bottom = -448.0
 
 [node name="export_level" type="Button" parent="ui/menus/row_options"]
-layout_mode = 0
 offset_right = 192.0
 offset_bottom = 96.0
 theme_override_fonts/font = ExtResource("4_efxvl")
@@ -183,6 +208,16 @@ theme_override_font_sizes/font_size = 40
 text = "load"
 flat = true
 
+[node name="clear_level" type="Button" parent="ui/menus/row_options"]
+layout_mode = 0
+offset_left = 1536.0
+offset_right = 1728.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 40
+text = "clear"
+flat = true
+
 [node name="exit_app" type="Button" parent="ui/menus/row_options"]
 layout_mode = 0
 offset_left = 1728.0
@@ -208,6 +243,18 @@ offset_bottom = 96.0
 theme_override_fonts/font = ExtResource("4_efxvl")
 theme_override_font_sizes/font_size = 40
 text = "( 0 , 0 )"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="zoom" type="Label" parent="ui/menus/row_info"]
+layout_mode = 0
+offset_left = 384.0
+offset_right = 768.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 40
+text = "2x
+"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -257,6 +304,7 @@ access = 2
 [connection signal="button_down" from="ui/menus/row_options/export_level" to="files/export" method="set_visible" binds= [true]]
 [connection signal="button_down" from="ui/menus/row_options/export_save" to="files/save" method="set_visible" binds= [true]]
 [connection signal="button_down" from="ui/menus/row_options/import_save" to="files/load" method="set_visible" binds= [true]]
+[connection signal="button_down" from="ui/menus/row_options/clear_level" to="." method="clear_level"]
 [connection signal="button_down" from="ui/menus/row_options/exit_app" to="." method="exit_app"]
 [connection signal="file_selected" from="files/export" to="." method="export_level"]
 [connection signal="file_selected" from="files/save" to="." method="export_save"]

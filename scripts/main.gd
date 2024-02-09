@@ -2,50 +2,60 @@
 # handles all functions in the tool
 # ---------------------------------
 extends Node
-#region variables
+# variables
+var keybinds:Dictionary = {
+	"move_up": KEY_W,
+	"move_left": KEY_A,
+	"move_down": KEY_S,
+	"move_right": KEY_D,
+	"zoom_out": KEY_Q,
+	"zoom_in": KEY_E,
+	"reset_view": KEY_Z,
+	"new_polygon": KEY_1,
+	"new_circle": KEY_2,
+	"new_checkpoint": KEY_3,
+	"new_flag": KEY_4 }
 # level
 var level_blocks:Dictionary
 var level_nidx:int = 0
 var level_selection:int = -1
 # ui input
 var is_moving_scene:bool = false
-#endregion
 # handles input
 func _input(event:InputEvent)->void:
 	# keyboard
 	if event is InputEventKey && level_selection == -1:
-		match event.keycode:
-			KEY_W:
-				if event.is_pressed(): %ui.position.y -= 30/$ui.zoom.x
-			KEY_A:
-				if event.is_pressed(): %ui.position.x -= 30/$ui.zoom.x
-			KEY_S:
-				if event.is_pressed(): %ui.position.y += 30/$ui.zoom.x
-			KEY_D:
-				if event.is_pressed(): %ui.position.x += 30/$ui.zoom.x
-			KEY_Q:
-				if event.is_pressed() && %ui.zoom.x < 4.99:
-					%ui.zoom += Vector2(0.1,0.1)
-					%ui.scale = Vector2(1,1)/%ui.zoom
-					%ui/rbref.scale = %ui.zoom
-			KEY_E:
-				if event.is_pressed() && %ui.zoom.x > 0.11:
-					%ui.zoom -= Vector2(0.1,0.1)
-					%ui.scale = Vector2(1,1)/%ui.zoom
-					%ui/rbref.scale = %ui.zoom
-			KEY_Z:
-				%ui.position = Vector2(0,0)
-				%ui.zoom = Vector2(2,2)
-				%ui.scale = Vector2(0.5,0.5)
-				%ui/rbref.scale = Vector2(2,2)
-			KEY_1:
-				if event.is_pressed(): new_block(Block.blocktypes.POLYGON)
-			KEY_2:
-				if event.is_pressed(): new_block(Block.blocktypes.CIRCLE)
-			KEY_3:
-				if event.is_pressed(): new_block(Block.blocktypes.CHECKPOINT)
-			KEY_4:
-				if event.is_pressed(): new_block(Block.blocktypes.FLAG)
+		if event.keycode == keybinds["move_up"]: if event.is_pressed():
+			%ui.position.y -= 30/$ui.zoom.x
+		if event.keycode == keybinds["move_left"]: if event.is_pressed():
+			%ui.position.x -= 30/$ui.zoom.x
+		if event.keycode == keybinds["move_down"]: if event.is_pressed():
+			%ui.position.y += 30/$ui.zoom.x
+		if event.keycode == keybinds["move_right"]: if event.is_pressed():
+			%ui.position.x += 30/$ui.zoom.x
+		if event.keycode == keybinds["zoom_out"]:
+			if event.is_pressed() && %ui.zoom.x < 4.99:
+				%ui.zoom += Vector2(0.1,0.1)
+				%ui.scale = Vector2(1,1)/%ui.zoom
+				%ui/rbref.scale = %ui.zoom
+		if event.keycode == keybinds["zoom_in"]:
+			if event.is_pressed() && %ui.zoom.x > 0.11:
+				%ui.zoom -= Vector2(0.1,0.1)
+				%ui.scale = Vector2(1,1)/%ui.zoom
+				%ui/rbref.scale = %ui.zoom
+		if event.keycode == keybinds["reset_view"]:
+			%ui.position = Vector2(0,0)
+			%ui.zoom = Vector2(2,2)
+			%ui.scale = Vector2(0.5,0.5)
+			%ui/rbref.scale = Vector2(2,2)
+		if event.keycode == keybinds["new_polygon"]:
+			if event.is_pressed(): new_block(Block.blocktypes.POLYGON)
+		if event.keycode == keybinds["new_circle"]:
+			if event.is_pressed(): new_block(Block.blocktypes.CIRCLE)
+		if event.keycode == keybinds["new_checkpoint"]:
+			if event.is_pressed(): new_block(Block.blocktypes.CHECKPOINT)
+		if event.keycode == keybinds["new_flag"]:
+			if event.is_pressed(): new_block(Block.blocktypes.FLAG)
 	# mouse buttons
 	if event is InputEventMouseButton:
 		match event.button_index:
@@ -231,12 +241,27 @@ func delete_block()->void:
 	# remove data, levelobj, and listobj
 	if level_selection != -1:
 		for i in %editlist.get_children(): 
-			%editlist.remove_child(i)
+			i.queue_free()
 		%editlist.add_child(Control.new())
 		level_blocks[level_selection].levelobj.queue_free()
 		level_blocks[level_selection].listobj.queue_free()
 		level_blocks.erase(level_selection)
 		level_selection = -1
+# clears the entire level
+func clear_level()->void:
+	# clear data and scene
+	level_blocks.clear()
+	for i in %level.get_children(): i.queue_free()
+	for i in %blocklist.get_children(): i.queue_free()
+	for i in %editlist.get_children():  i.queue_free()
+	# recreate death barrier
+	var level_death:Line2D = Line2D.new()
+	level_death.points = [Vector2(10000,585),Vector2(-10000,585)]
+	level_death.width = 50
+	level_death.default_color = Color(1,0,0,0.75)
+	%level.add_child(level_death)
+	# reset nidx
+	level_nidx = 0
 # exports the level to a txt file
 func export_level(filepath:String)->void:
 	# generate level string
@@ -256,10 +281,7 @@ func export_save(filepath:String)->void:
 # imports the level from an rbmp save
 func import_save(filepath:String)->void:
 	# clear scene
-	level_blocks.clear()
-	for i in %level.get_children():
-		i.queue_free()
-	level_nidx = 0
+	clear_level()
 	# load file
 	var savefile:FileAccess = FileAccess.open(filepath, FileAccess.READ)
 	var level_size:int = savefile.get_32()
@@ -276,6 +298,7 @@ func import_save(filepath:String)->void:
 # updates row_info text
 func update_info()->void:
 	$ui/menus/row_info/position.text = "( "+str(round(%ui.position.x))+" , "+str(round(%ui.position.y))+" )"
+	$ui/menus/row_info/zoom.text = str(snapped(%ui.zoom.x,0.1))+"x"
 # closes the application
 func exit_app()->void:
 	get_tree().quit()
