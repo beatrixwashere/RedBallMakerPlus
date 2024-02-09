@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=3 uid="uid://dhho5ojde1a1p"]
 
-[ext_resource type="Texture2D" uid="uid://c4qok0k14d1x2" path="res://images/ui_editobj.png" id="1_fmh18"]
+[ext_resource type="Texture2D" uid="uid://c4qok0k14d1x2" path="res://images/ui/ui_editobj.png" id="1_fmh18"]
 [ext_resource type="FontFile" uid="uid://4fm13rlrv0pl" path="res://images/kronika.ttf" id="2_hyy5k"]
 
 [node name="edit_block" type="Control"]
@@ -46,6 +46,7 @@ text = "edit"
 flat = true
 
 [node name="popup_color" type="Window" parent="."]
+title = "edit color"
 initial_position = 1
 size = Vector2i(384, 512)
 visible = false
