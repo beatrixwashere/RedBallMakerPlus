@@ -69,7 +69,7 @@ unresizable = true
 
 [node name="container" type="ScrollContainer" parent="popup_polygon"]
 offset_right = 384.0
-offset_bottom = 384.0
+offset_bottom = 480.0
 vertical_scroll_mode = 2
 
 [node name="editlist" type="VBoxContainer" parent="popup_polygon/container"]
