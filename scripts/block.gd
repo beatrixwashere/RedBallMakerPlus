@@ -29,7 +29,7 @@ var mass:float = 0
 var friction:float = 1
 var restitution:float = 0.2
 var polygon:PackedVector2Array = PackedVector2Array()
-var position:Vector2 = Vector2()
+var position:Vector2i = Vector2i(0,0)
 var radius:float = 25
 var fill:Color = Color(0,0,0,1)
 # TODO: add textures
