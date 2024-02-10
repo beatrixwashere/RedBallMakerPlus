@@ -300,6 +300,7 @@ func apply_edits()->void:
 	if level_blocks[level_selection].type == Block.blocktypes.CHECKPOINT || \
 	level_blocks[level_selection].type == Block.blocktypes.FLAG:
 		level_blocks[level_selection].levelobj.position = level_blocks[level_selection].position
+	level_blocks[level_selection].listobj.get_node("text").text = level_blocks[level_selection].name
 	close_edits()
 # removes the edit list
 func close_edits()->void:
