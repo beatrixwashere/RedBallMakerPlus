@@ -2,6 +2,17 @@
 # handles all functions in the tool
 # ---------------------------------
 extends Node
+# constants
+const listblock:PackedScene = preload("res://scenes/block/list_block.tscn")
+const editblock:PackedScene = preload("res://scenes/block/edit_block.tscn")
+const polydata:PackedScene = preload("res://scenes/block/polydata.tscn")
+const circle:CompressedTexture2D = preload("res://images/circle.png")
+const checkpoint:CompressedTexture2D = preload("res://images/checkpoint.png")
+const flag:CompressedTexture2D = preload("res://images/flag.png")
+const icon_polygon:CompressedTexture2D = preload("res://images/icons/icon_polygon.png")
+const icon_circle:CompressedTexture2D = preload("res://images/icons/icon_circle.png")
+const icon_checkpoint:CompressedTexture2D = preload("res://images/icons/icon_checkpoint.png")
+const icon_flag:CompressedTexture2D = preload("res://images/icons/icon_flag.png")
 # variables
 var keybinds:Dictionary = {
 	"move_up": KEY_W,
@@ -21,41 +32,74 @@ var level_nidx:int = 0
 var level_selection:int = -1
 # ui input
 var is_moving_scene:bool = false
+var is_awaiting_input:bool = false
+var keybind_to_set:String
+var keytext_to_update:Node
+# setup the tool
+func _ready()->void:
+	# opens settings file
+	if !FileAccess.file_exists("user://settings.rbmpc"): apply_settings()
+	var settingsfile:FileAccess = FileAccess.open("user://settings.rbmpc",FileAccess.READ)
+	# prepares keybind settings
+	for i in keybinds.keys():
+		keybinds[i] = settingsfile.get_32()
+		var n_setkeybind:Node = editblock.instantiate()
+		n_setkeybind.name = i
+		n_setkeybind.get_node("text").text = i
+		n_setkeybind.get_node("text").add_theme_font_size_override("font_size",20)
+		n_setkeybind.get_node("edit").visible = false
+		n_setkeybind.get_node("popup_edit").text = OS.get_keycode_string(keybinds[i])
+		n_setkeybind.get_node("popup_edit").add_theme_font_size_override("font_size",20)
+		n_setkeybind.get_node("popup_edit").visible = true
+		var await_keybind:Callable = func await_keybind_func()->void:
+			n_setkeybind.get_node("popup_edit").text = "awaiting input..."
+			is_awaiting_input = true
+			keybind_to_set = i
+			keytext_to_update = n_setkeybind.get_node("popup_edit")
+		n_setkeybind.get_node("popup_edit").connect("button_down",await_keybind)
+		%settings/container/keylist.add_child(n_setkeybind)
+	%settings/container/keylist.move_child(%settings/container/keylist.get_child(0), \
+	%settings/container/keylist.get_child_count()-1)
 # handles input
 func _input(event:InputEvent)->void:
 	# keyboard
-	if event is InputEventKey && level_selection == -1:
-		if event.keycode == keybinds["move_up"]: if event.is_pressed():
-			%ui.position.y -= 30/$ui.zoom.x
-		if event.keycode == keybinds["move_left"]: if event.is_pressed():
-			%ui.position.x -= 30/$ui.zoom.x
-		if event.keycode == keybinds["move_down"]: if event.is_pressed():
-			%ui.position.y += 30/$ui.zoom.x
-		if event.keycode == keybinds["move_right"]: if event.is_pressed():
-			%ui.position.x += 30/$ui.zoom.x
-		if event.keycode == keybinds["zoom_out"]:
-			if event.is_pressed() && %ui.zoom.x < 4.99:
-				%ui.zoom += Vector2(0.1,0.1)
-				%ui.scale = Vector2(1,1)/%ui.zoom
-				%ui/rbref.scale = %ui.zoom
-		if event.keycode == keybinds["zoom_in"]:
-			if event.is_pressed() && %ui.zoom.x > 0.11:
-				%ui.zoom -= Vector2(0.1,0.1)
-				%ui.scale = Vector2(1,1)/%ui.zoom
-				%ui/rbref.scale = %ui.zoom
-		if event.keycode == keybinds["reset_view"]:
-			%ui.position = Vector2(0,0)
-			%ui.zoom = Vector2(2,2)
-			%ui.scale = Vector2(0.5,0.5)
-			%ui/rbref.scale = Vector2(2,2)
-		if event.keycode == keybinds["new_polygon"]:
-			if event.is_pressed(): new_block(Block.blocktypes.POLYGON)
-		if event.keycode == keybinds["new_circle"]:
-			if event.is_pressed(): new_block(Block.blocktypes.CIRCLE)
-		if event.keycode == keybinds["new_checkpoint"]:
-			if event.is_pressed(): new_block(Block.blocktypes.CHECKPOINT)
-		if event.keycode == keybinds["new_flag"]:
-			if event.is_pressed(): new_block(Block.blocktypes.FLAG)
+	if event is InputEventKey:
+		if is_awaiting_input:
+			keybinds[keybind_to_set] = event.keycode
+			keytext_to_update.text = OS.get_keycode_string(event.keycode)
+			is_awaiting_input = false
+		elif level_selection == -1:
+			if event.keycode == keybinds["move_up"]: if event.is_pressed():
+				%ui.position.y -= 30/$ui.zoom.x
+			if event.keycode == keybinds["move_left"]: if event.is_pressed():
+				%ui.position.x -= 30/$ui.zoom.x
+			if event.keycode == keybinds["move_down"]: if event.is_pressed():
+				%ui.position.y += 30/$ui.zoom.x
+			if event.keycode == keybinds["move_right"]: if event.is_pressed():
+				%ui.position.x += 30/$ui.zoom.x
+			if event.keycode == keybinds["zoom_out"]:
+				if event.is_pressed() && %ui.zoom.x < 4.99:
+					%ui.zoom += Vector2(0.1,0.1)
+					%ui.scale = Vector2(1,1)/%ui.zoom
+					%ui/rbref.scale = %ui.zoom
+			if event.keycode == keybinds["zoom_in"]:
+				if event.is_pressed() && %ui.zoom.x > 0.11:
+					%ui.zoom -= Vector2(0.1,0.1)
+					%ui.scale = Vector2(1,1)/%ui.zoom
+					%ui/rbref.scale = %ui.zoom
+			if event.keycode == keybinds["reset_view"]:
+				%ui.position = Vector2(0,0)
+				%ui.zoom = Vector2(2,2)
+				%ui.scale = Vector2(0.5,0.5)
+				%ui/rbref.scale = Vector2(2,2)
+			if event.keycode == keybinds["new_polygon"]:
+				if event.is_pressed(): new_block(Block.blocktypes.POLYGON)
+			if event.keycode == keybinds["new_circle"]:
+				if event.is_pressed(): new_block(Block.blocktypes.CIRCLE)
+			if event.keycode == keybinds["new_checkpoint"]:
+				if event.is_pressed(): new_block(Block.blocktypes.CHECKPOINT)
+			if event.keycode == keybinds["new_flag"]:
+				if event.is_pressed(): new_block(Block.blocktypes.FLAG)
 	# mouse buttons
 	if event is InputEventMouseButton:
 		match event.button_index:
@@ -114,7 +158,7 @@ func new_levelobj(bdata:Block)->void:
 			bdata.levelobj = n_block_obj
 		Block.blocktypes.CIRCLE:
 			var n_block_obj:Sprite2D = Sprite2D.new()
-			n_block_obj.texture = load("res://images/circle.png") as CompressedTexture2D
+			n_block_obj.texture = circle
 			n_block_obj.position = bdata.position
 			n_block_obj.scale = Vector2(bdata.radius/50,bdata.radius/50)
 			n_block_obj.self_modulate = bdata.outline
@@ -127,31 +171,27 @@ func new_levelobj(bdata:Block)->void:
 			bdata.levelobj = n_block_obj
 		Block.blocktypes.CHECKPOINT:
 			var n_block_obj:Sprite2D = Sprite2D.new()
-			n_block_obj.texture = load("res://images/checkpoint.png") as CompressedTexture2D
+			n_block_obj.texture = checkpoint
 			n_block_obj.centered = false
 			n_block_obj.position = bdata.position
 			%level.add_child(n_block_obj)
 			bdata.levelobj = n_block_obj
 		Block.blocktypes.FLAG:
 			var n_block_obj:Sprite2D = Sprite2D.new()
-			n_block_obj.texture = load("res://images/flag.png") as CompressedTexture2D
+			n_block_obj.texture = flag
 			n_block_obj.centered = false
 			n_block_obj.position = bdata.position
 			%level.add_child(n_block_obj)
 			bdata.levelobj = n_block_obj
 # helper function for making the listobj
 func new_listobj(bdata:Block)->void:
-	var n_block_list:Control = load("res://scenes/block/list_block.tscn").instantiate() as Control
+	var n_block_list:Control = listblock.instantiate()
 	n_block_list.name = str(level_nidx)
 	match bdata.type:
-		Block.blocktypes.POLYGON: n_block_list.get_node("icon").texture = \
-		load("res://images/icons/icon_polygon.png") as CompressedTexture2D
-		Block.blocktypes.CIRCLE: n_block_list.get_node("icon").texture = \
-		load("res://images/icons/icon_circle.png") as CompressedTexture2D
-		Block.blocktypes.CHECKPOINT: n_block_list.get_node("icon").texture = \
-		load("res://images/icons/icon_checkpoint.png") as CompressedTexture2D
-		Block.blocktypes.FLAG: n_block_list.get_node("icon").texture = \
-		load("res://images/icons/icon_flag.png") as CompressedTexture2D
+		Block.blocktypes.POLYGON: n_block_list.get_node("icon").texture = icon_polygon
+		Block.blocktypes.CIRCLE: n_block_list.get_node("icon").texture = icon_circle
+		Block.blocktypes.CHECKPOINT: n_block_list.get_node("icon").texture = icon_checkpoint
+		Block.blocktypes.FLAG: n_block_list.get_node("icon").texture = icon_flag
 	n_block_list.get_node("text").text = bdata.name
 	n_block_list.get_node("edit").connect("button_down", edit_block.bind(level_nidx))
 	n_block_list.get_node("move_up").connect("button_down", move_block.bind(level_nidx, true))
@@ -165,7 +205,7 @@ func edit_block(idx:int)->void:
 	# helper function for new list
 	var c_edit_obj:Callable = \
 	func c_edit_obj_func(i_name:String, i_type:String, i_var:Variant, i_popup:String = "")->void:
-		var n_edit_obj:Control = load("res://scenes/block/edit_block.tscn").instantiate() as Control
+		var n_edit_obj:Control = editblock.instantiate()
 		n_edit_obj.name = i_name
 		n_edit_obj.get_node("text").text = i_name
 		n_edit_obj.get_node("edit").placeholder_text = i_type
@@ -178,7 +218,24 @@ func edit_block(idx:int)->void:
 			match i_popup:
 				"popup_color":
 					n_edit_obj.get_node("popup_color/color").color = i_var
-					pass
+				"popup_polygon":
+					var polylist:Node = n_edit_obj.get_node("popup_polygon/container/editlist")
+					for i in i_var:
+						var n_polydata:Node = polydata.instantiate()
+						n_polydata.get_node("xcoord").text = str(i.x)
+						n_polydata.get_node("ycoord").text = str(i.y)
+						polylist.add_child(n_polydata)
+					var add_polydata:Callable = func add_polydata_func()->void:
+						var n_polydata:Node = polydata.instantiate()
+						polylist.add_child(n_polydata)
+						polylist.move_child(n_polydata, polylist.get_child_count()-3)
+					polylist.move_child(polylist.get_child(0), polylist.get_child_count()-1)
+					polylist.move_child(polylist.get_child(0), polylist.get_child_count()-1)
+					polylist.get_node("addpoint/button").connect("button_down", add_polydata)
+		else:
+			n_edit_obj.get_node("popup_edit").queue_free()
+			n_edit_obj.get_node("popup_color").queue_free()
+			n_edit_obj.get_node("popup_polygon").queue_free()
 		%editlist.add_child(n_edit_obj)
 		%editlist.move_child(n_edit_obj, \
 		%editlist.get_child_count()-2)
@@ -191,6 +248,15 @@ func edit_block(idx:int)->void:
 		c_edit_obj.call("mass","float",level_blocks[idx].mass)
 		c_edit_obj.call("friction","float",level_blocks[idx].friction)
 		c_edit_obj.call("restitution","float",level_blocks[idx].restitution)
+	if level_blocks[idx].type == Block.blocktypes.POLYGON:
+		c_edit_obj.call("polygon","",level_blocks[idx].polygon,"popup_polygon")
+	else:
+		c_edit_obj.call("x-position","int",level_blocks[idx].position.x)
+		c_edit_obj.call("y-position","int",level_blocks[idx].position.y)
+	if level_blocks[idx].type == Block.blocktypes.CIRCLE:
+		c_edit_obj.call("radius","int",level_blocks[idx].radius)
+	if level_blocks[idx].type == Block.blocktypes.POLYGON || \
+	level_blocks[idx].type == Block.blocktypes.CIRCLE:
 		c_edit_obj.call("fill","",level_blocks[idx].fill,"popup_color")
 		c_edit_obj.call("outline","",level_blocks[idx].outline,"popup_color")
 	# scene obj indicators
@@ -208,14 +274,32 @@ func apply_edits()->void:
 		level_blocks[level_selection].restitution = %editlist.get_node("restitution/edit").text.to_float()
 		level_blocks[level_selection].fill = %editlist.get_node("fill/popup_color/color").color
 		level_blocks[level_selection].outline = %editlist.get_node("outline/popup_color/color").color
+	if level_blocks[level_selection].type == Block.blocktypes.POLYGON:
+		level_blocks[level_selection].polygon = PackedVector2Array()
+		for i in %editlist.get_node("polygon/popup_polygon/container/editlist").get_children():
+			if i.name != "addpoint" && i.name != "scrollfix": \
+			level_blocks[level_selection].polygon.append(Vector2( \
+			i.get_node("xcoord").text.to_int(), i.get_node("ycoord").text.to_int()))
+	else:
+		level_blocks[level_selection].position.x = %editlist.get_node("x-position/edit").text.to_int()
+		level_blocks[level_selection].position.y = %editlist.get_node("y-position/edit").text.to_int()
+	if level_blocks[level_selection].type == Block.blocktypes.CIRCLE:
+		level_blocks[level_selection].radius = %editlist.get_node("radius/edit").text.to_int()
 	# apply data to scene
 	if level_blocks[level_selection].type == Block.blocktypes.POLYGON:
+		level_blocks[level_selection].levelobj.polygon = level_blocks[level_selection].polygon
 		level_blocks[level_selection].levelobj.color = level_blocks[level_selection].fill
+		level_blocks[level_selection].levelobj.get_child(0).points = level_blocks[level_selection].polygon
 		level_blocks[level_selection].levelobj.get_child(0).default_color = level_blocks[level_selection].outline
 	if level_blocks[level_selection].type == Block.blocktypes.CIRCLE:
+		level_blocks[level_selection].levelobj.position = level_blocks[level_selection].position
+		level_blocks[level_selection].levelobj.scale = Vector2( \
+		level_blocks[level_selection].radius/50,level_blocks[level_selection].radius/50)
 		level_blocks[level_selection].levelobj.self_modulate = level_blocks[level_selection].outline
 		level_blocks[level_selection].levelobj.get_child(0).self_modulate = level_blocks[level_selection].fill
-	level_blocks[level_selection].listobj.get_node("text").text = level_blocks[level_selection].name
+	if level_blocks[level_selection].type == Block.blocktypes.CHECKPOINT || \
+	level_blocks[level_selection].type == Block.blocktypes.FLAG:
+		level_blocks[level_selection].levelobj.position = level_blocks[level_selection].position
 	close_edits()
 # removes the edit list
 func close_edits()->void:
@@ -262,6 +346,10 @@ func clear_level()->void:
 	%level.add_child(level_death)
 	# reset nidx
 	level_nidx = 0
+# updates the settings file
+func apply_settings()->void:
+	var settingsfile:FileAccess = FileAccess.open("user://settings.rbmpc",FileAccess.WRITE)
+	for i in keybinds.values(): settingsfile.store_32(i)
 # exports the level to a txt file
 func export_level(filepath:String)->void:
 	# generate level string

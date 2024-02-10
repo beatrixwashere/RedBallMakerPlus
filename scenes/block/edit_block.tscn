@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://dhho5ojde1a1p"]
+[gd_scene load_steps=4 format=3 uid="uid://dhho5ojde1a1p"]
 
 [ext_resource type="Texture2D" uid="uid://c4qok0k14d1x2" path="res://images/ui/ui_editobj.png" id="1_fmh18"]
 [ext_resource type="FontFile" uid="uid://4fm13rlrv0pl" path="res://images/kronika.ttf" id="2_hyy5k"]
+[ext_resource type="Texture2D" uid="uid://trsldbmmm0w3" path="res://images/ui/ui_button.png" id="3_auslt"]
 
 [node name="edit_block" type="Control"]
 layout_mode = 3
@@ -50,6 +51,7 @@ title = "edit color"
 initial_position = 1
 size = Vector2i(384, 512)
 visible = false
+unresizable = true
 
 [node name="color" type="ColorPicker" parent="popup_color"]
 offset_right = 384.0
@@ -57,4 +59,43 @@ offset_bottom = 513.0
 edit_alpha = false
 sampler_visible = false
 
+[node name="popup_polygon" type="Window" parent="."]
+canvas_item_default_texture_filter = 0
+title = "edit polygon"
+initial_position = 1
+size = Vector2i(384, 480)
+visible = false
+unresizable = true
+
+[node name="container" type="ScrollContainer" parent="popup_polygon"]
+offset_right = 384.0
+offset_bottom = 384.0
+vertical_scroll_mode = 2
+
+[node name="editlist" type="VBoxContainer" parent="popup_polygon/container"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 96
+
+[node name="addpoint" type="Control" parent="popup_polygon/container/editlist"]
+layout_mode = 2
+
+[node name="sprite" type="Sprite2D" parent="popup_polygon/container/editlist/addpoint"]
+scale = Vector2(8, 8)
+texture = ExtResource("3_auslt")
+centered = false
+
+[node name="button" type="Button" parent="popup_polygon/container/editlist/addpoint"]
+layout_mode = 0
+offset_right = 384.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("2_hyy5k")
+theme_override_font_sizes/font_size = 40
+text = "add"
+flat = true
+
+[node name="scrollfix" type="Control" parent="popup_polygon/container/editlist"]
+layout_mode = 2
+
 [connection signal="close_requested" from="popup_color" to="popup_color" method="set_visible" binds= [false]]
+[connection signal="close_requested" from="popup_polygon" to="popup_polygon" method="set_visible" binds= [false]]

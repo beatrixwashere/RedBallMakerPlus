@@ -1,0 +1,47 @@
+[gd_scene load_steps=3 format=3 uid="uid://c6ie0wtd57bwt"]
+
+[ext_resource type="Texture2D" uid="uid://bf12nfmncpgul" path="res://images/ui/ui_polydata.png" id="1_mf01p"]
+[ext_resource type="FontFile" uid="uid://4fm13rlrv0pl" path="res://images/kronika.ttf" id="2_4uead"]
+
+[node name="polydata" type="Control"]
+texture_filter = 1
+layout_mode = 3
+anchors_preset = 0
+
+[node name="sprite" type="Sprite2D" parent="."]
+scale = Vector2(8, 8)
+texture = ExtResource("1_mf01p")
+centered = false
+
+[node name="xcoord" type="LineEdit" parent="."]
+layout_mode = 0
+offset_right = 160.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("2_4uead")
+theme_override_font_sizes/font_size = 30
+placeholder_text = "int"
+alignment = 1
+flat = true
+
+[node name="ycoord" type="LineEdit" parent="."]
+layout_mode = 0
+offset_left = 160.0
+offset_right = 320.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("2_4uead")
+theme_override_font_sizes/font_size = 30
+placeholder_text = "int"
+alignment = 1
+flat = true
+
+[node name="remove" type="Button" parent="."]
+layout_mode = 0
+offset_left = 320.0
+offset_right = 384.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("2_4uead")
+theme_override_font_sizes/font_size = 30
+text = "-"
+flat = true
+
+[connection signal="button_down" from="remove" to="." method="queue_free"]
