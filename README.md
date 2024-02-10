@@ -27,7 +27,7 @@ all key controls can be changed in settings, but the defaults are:
 
 ## suggestions
 
-this project's development relies heavily on user suggestions, which can be made either by asking in the red ball maker plus thread in the red ball speedrunning discord, or by creating an issue in the issues tab in this repository.
+this project's development relies heavily on user suggestions, which can be made either by asking in the [red ball maker plus thread](https://discord.com/channels/669649577846243328/1205703739550203924) in the [red ball speedrunning discord](https://discord.gg/NtectkbxPK), or by creating an issue in the issues tab in this repository.
 
 before making a suggestion, make sure it isn't in this list, which includes everything i have planned:
 - creating joints between blocks
