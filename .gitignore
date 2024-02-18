@@ -2,3 +2,5 @@
 .godot/
 # ignore import files
 *.import
+# ignore _dump folder for level/save testing
+_dump/
