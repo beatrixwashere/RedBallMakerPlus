@@ -90,4 +90,10 @@ func load_data(file:FileAccess)->void:
 	if type == blocktypes.CIRCLE: radius = file.get_float()
 	if type == blocktypes.POLYGON || type == blocktypes.CIRCLE:
 		fill = file.get_var() # store_32
-		outline = file.get_var() # store_16 
+		outline = file.get_var() # store_16
+# get average position of polygon data
+func get_polyavg()->Vector2i:
+	var result:Vector2 = Vector2()
+	for i in polygon: result += i
+	result /= polygon.size()
+	return Vector2i(result)
