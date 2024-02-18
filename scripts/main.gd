@@ -25,7 +25,8 @@ var keybinds:Dictionary = {
 	"new_polygon": KEY_1,
 	"new_circle": KEY_2,
 	"new_checkpoint": KEY_3,
-	"new_flag": KEY_4 }
+	"new_flag": KEY_4,
+	"focus_block": KEY_F }
 # level
 var level_blocks:Dictionary
 var level_nidx:int = 0
@@ -92,14 +93,21 @@ func _input(event:InputEvent)->void:
 				%ui.zoom = Vector2(2,2)
 				%ui.scale = Vector2(0.5,0.5)
 				%ui/rbref.scale = Vector2(2,2)
-			if event.keycode == keybinds["new_polygon"]:
-				if event.is_pressed(): new_block(Block.blocktypes.POLYGON)
-			if event.keycode == keybinds["new_circle"]:
-				if event.is_pressed(): new_block(Block.blocktypes.CIRCLE)
-			if event.keycode == keybinds["new_checkpoint"]:
-				if event.is_pressed(): new_block(Block.blocktypes.CHECKPOINT)
-			if event.keycode == keybinds["new_flag"]:
-				if event.is_pressed(): new_block(Block.blocktypes.FLAG)
+			if event.keycode == keybinds["new_polygon"]: if event.is_pressed():
+				new_block(Block.blocktypes.POLYGON)
+			if event.keycode == keybinds["new_circle"]: if event.is_pressed():
+				new_block(Block.blocktypes.CIRCLE)
+			if event.keycode == keybinds["new_checkpoint"]: if event.is_pressed():
+				new_block(Block.blocktypes.CHECKPOINT)
+			if event.keycode == keybinds["new_flag"]: if event.is_pressed():
+				new_block(Block.blocktypes.FLAG)
+		else: if event.keycode == keybinds["focus_block"]: if event.is_pressed():
+			print("tween")
+			var tween:Tween = get_tree().create_tween() \
+			.set_trans(Tween.TRANS_QUART).set_ease(Tween.EASE_OUT)
+			tween.tween_property(%ui, "position", level_blocks[level_selection].get_polyavg() \
+			if level_blocks[level_selection].type == Block.blocktypes.POLYGON else \
+			level_blocks[level_selection].position, 0.5)
 	# mouse buttons
 	if event is InputEventMouseButton:
 		match event.button_index:
@@ -139,6 +147,7 @@ func new_block(n_type:int)->void:
 	new_levelobj(n_data)
 	# add block to list
 	new_listobj(n_data)
+	# finalization
 	level_blocks[level_nidx] = n_data
 	level_nidx += 1
 # helper function for making the levelobj
@@ -197,7 +206,7 @@ func new_listobj(bdata:Block)->void:
 	n_block_list.get_node("move_up").connect("button_down", move_block.bind(level_nidx, true))
 	n_block_list.get_node("move_down").connect("button_down", move_block.bind(level_nidx, false))
 	%blocklist.add_child(n_block_list)
-	%blocklist.move_child(n_block_list, 0)
+	%blocklist.move_child(%blocklist/scrollfix, %blocklist.get_child_count()-1)
 	bdata.listobj = n_block_list
 # opens the block edit menu
 func edit_block(idx:int)->void:
@@ -240,7 +249,6 @@ func edit_block(idx:int)->void:
 		%editlist.move_child(n_edit_obj, \
 		%editlist.get_child_count()-2)
 	# setup list
-	# TODO: add rest of variables, especially polygon
 	c_edit_obj.call("name","string",level_blocks[idx].name)
 	if level_blocks[idx].type == Block.blocktypes.POLYGON || \
 	level_blocks[idx].type == Block.blocktypes.CIRCLE:
@@ -317,10 +325,10 @@ func move_block(idx:int, dir:bool)->void:
 	elif !dir && level_blocks[idx].listobj.get_index()+1 <= %blocklist.get_child_count()-2:
 		%blocklist.move_child(level_blocks[idx].listobj, level_blocks[idx].listobj.get_index()+1)
 	# change the level child index
-	if dir && level_blocks[idx].listobj.get_index()+1 <= %level.get_child_count()-1:
-		%level.move_child(level_blocks[idx].levelobj, level_blocks[idx].levelobj.get_index()+1)
-	elif !dir && level_blocks[idx].levelobj.get_index()-1 >= 0:
+	if dir && level_blocks[idx].levelobj.get_index()-1 >= 0:
 		%level.move_child(level_blocks[idx].levelobj, level_blocks[idx].levelobj.get_index()-1)
+	elif !dir && level_blocks[idx].listobj.get_index()+1 <= %level.get_child_count()-1:
+		%level.move_child(level_blocks[idx].levelobj, level_blocks[idx].levelobj.get_index()+1)
 # deletes the selected block
 func delete_block()->void:
 	# remove data, levelobj, and listobj
