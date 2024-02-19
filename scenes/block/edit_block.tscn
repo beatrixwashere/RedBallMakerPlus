@@ -97,5 +97,32 @@ flat = true
 [node name="scrollfix" type="Control" parent="popup_polygon/container/editlist"]
 layout_mode = 2
 
+[node name="popup_points" type="Window" parent="."]
+canvas_item_default_texture_filter = 0
+title = "edit points"
+initial_position = 1
+size = Vector2i(384, 96)
+visible = false
+unresizable = true
+
+[node name="applypoints" type="Control" parent="popup_points"]
+layout_mode = 3
+anchors_preset = 0
+
+[node name="sprite" type="Sprite2D" parent="popup_points/applypoints"]
+scale = Vector2(8, 8)
+texture = ExtResource("3_auslt")
+centered = false
+
+[node name="button" type="Button" parent="popup_points/applypoints"]
+layout_mode = 0
+offset_right = 384.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("2_hyy5k")
+theme_override_font_sizes/font_size = 40
+text = "apply"
+flat = true
+
 [connection signal="close_requested" from="popup_color" to="popup_color" method="set_visible" binds= [false]]
 [connection signal="close_requested" from="popup_polygon" to="popup_polygon" method="set_visible" binds= [false]]
+[connection signal="close_requested" from="popup_points" to="popup_points" method="set_visible" binds= [false]]

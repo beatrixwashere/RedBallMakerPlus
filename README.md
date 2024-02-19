@@ -15,13 +15,15 @@ this is currently a work in progress, and there are many more features to come (
 ## controls
 
 all key controls can be changed in settings, but the defaults are:
-- move camera: middle mouse or w/a/s/d
+- move camera: right click or w/a/s/d
 - zoom camera: scroll or q/e
 - reset camera: z
 - new polygon: 1
 - new circle: 2
 - new checkpoint: 3
 - new flag: 4
+- focus block: f
+- grid snap: x
 
 ---
 
@@ -31,11 +33,7 @@ this project's development relies heavily on user suggestions, which can be made
 
 before making a suggestion, make sure it isn't in this list, which includes everything i have planned:
 - creating joints between blocks
-- editing blocks by dragging their vertices
-- undos, redos, and autosaves
-- importing from a txt file
 - script editing, as well as an alternate language for scripting
-- layers for better organization
 - built in player, along with movement tracing
 - toolbox for saving and duplicating blocks
 - ui color themes

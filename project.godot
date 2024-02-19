@@ -13,10 +13,15 @@ config_version=5
 config/name="RedBallMakerPlus"
 config/version="1.0.1"
 run/main_scene="res://scenes/main.tscn"
+config/auto_accept_quit=false
 config/features=PackedStringArray("4.2", "GL Compatibility")
 boot_splash/bg_color=Color(0.141176, 0.141176, 0.141176, 1)
 boot_splash/image="res://images/logo.png"
 config/icon="res://images/logo.png"
+
+[autoload]
+
+states="*res://scripts/states.gd"
 
 [display]
 
