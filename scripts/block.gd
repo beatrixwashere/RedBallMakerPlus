@@ -34,8 +34,10 @@ var radius:float = 25
 var fill:Color = Color(0,0,0,1)
 # TODO: add textures
 var outline:Color = Color(0,0,0,1)
+# rbmp unique
 var levelobj:Node
 var listobj:Node
+var visible:bool = true
 # encode into level format
 func encode_level()->String:
 	var output:String = ""
@@ -112,6 +114,7 @@ func save_data(file:FileAccess)->void:
 	if type == blocktypes.POLYGON || type == blocktypes.CIRCLE:
 		file.store_var(fill) # store_24
 		file.store_var(outline) # store_24
+	file.store_8(int(visible))
 # load data from rbmp file
 func load_data(file:FileAccess)->void:
 	# TODO: reduce size to the following comments
@@ -128,6 +131,7 @@ func load_data(file:FileAccess)->void:
 	if type == blocktypes.POLYGON || type == blocktypes.CIRCLE:
 		fill = file.get_var() # store_32
 		outline = file.get_var() # store_16
+	visible = bool(file.get_8())
 # get average position of polygon data
 func get_polyavg()->Vector2:
 	var result:Vector2 = Vector2()
