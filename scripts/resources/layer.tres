@@ -1,0 +1,6 @@
+[gd_resource type="Resource" script_class="Layer" load_steps=2 format=3 uid="uid://dwki0k5su6ni5"]
+
+[ext_resource type="Script" path="res://scripts/layer.gd" id="1_iaggr"]
+
+[resource]
+script = ExtResource("1_iaggr")
