@@ -16,8 +16,10 @@ func store_layer(lvlblks:Dictionary)->void:
 	for i in blklist.get_children(): if i.name != "scrollfix":
 		blocks.append(lvlblks[i.name.to_int()])
 # encode into level format
-func encode_level()->void:
-	for i in blocks: i.encode_level()
+func encode_level()->String:
+	var output:String = ""
+	for i in blocks: output += i.encode_level()
+	return output
 # save data into rbmp file
 func save_data(file:FileAccess)->void:
 	file.store_pascal_string(name)

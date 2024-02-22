@@ -31,7 +31,6 @@ window/size/mode=2
 window/size/window_width_override=1024
 window/size/window_height_override=576
 window/stretch/mode="viewport"
-window/stretch/aspect="keep_width"
 
 [file_customization]
 
