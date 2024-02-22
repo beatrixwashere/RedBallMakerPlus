@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3 uid="uid://s8rj27bsvish"]
+[gd_scene load_steps=5 format=3 uid="uid://s8rj27bsvish"]
 
 [ext_resource type="Texture2D" uid="uid://sn4bgt7fholi" path="res://images/ui/ui_listobj.png" id="1_22roi"]
 [ext_resource type="FontFile" uid="uid://4fm13rlrv0pl" path="res://images/kronika.ttf" id="2_4wxgd"]
 [ext_resource type="Texture2D" uid="uid://dy7fgxdty5ixn" path="res://images/icons/icon_polygon.png" id="2_5qf05"]
+[ext_resource type="Texture2D" uid="uid://dny2cm0gir86k" path="res://images/icons/icon_visible.png" id="4_o4vlv"]
 
 [node name="list_block" type="Control"]
 layout_mode = 3
@@ -10,44 +11,68 @@ anchors_preset = 0
 
 [node name="sprite" type="Sprite2D" parent="."]
 texture_filter = 1
-scale = Vector2(8, 8)
+scale = Vector2(4, 4)
 texture = ExtResource("1_22roi")
 centered = false
 
 [node name="icon" type="Sprite2D" parent="."]
 texture_filter = 1
-position = Vector2(32, 32)
-scale = Vector2(4, 4)
+position = Vector2(24, 24)
+scale = Vector2(3, 3)
 texture = ExtResource("2_5qf05")
 
 [node name="text" type="Label" parent="."]
 layout_mode = 0
-offset_left = 64.0
-offset_right = 256.0
-offset_bottom = 64.0
+offset_left = 48.0
+offset_right = 240.0
+offset_bottom = 48.0
 theme_override_fonts/font = ExtResource("2_4wxgd")
-theme_override_font_sizes/font_size = 25
+theme_override_font_sizes/font_size = 20
 text = "block.name"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="edit" type="Button" parent="."]
 layout_mode = 0
-offset_left = 64.0
-offset_right = 256.0
-offset_bottom = 64.0
+offset_right = 240.0
+offset_bottom = 48.0
 flat = true
 
 [node name="move_up" type="Button" parent="."]
 layout_mode = 0
-offset_left = 256.0
-offset_right = 320.0
-offset_bottom = 64.0
+offset_left = 240.0
+offset_right = 288.0
+offset_bottom = 48.0
 flat = true
 
 [node name="move_down" type="Button" parent="."]
 layout_mode = 0
-offset_left = 320.0
+offset_left = 288.0
+offset_right = 336.0
+offset_bottom = 48.0
+flat = true
+
+[node name="icon_visible" type="Sprite2D" parent="."]
+texture_filter = 1
+position = Vector2(360, 24)
+scale = Vector2(4, 4)
+texture = ExtResource("4_o4vlv")
+
+[node name="toggle_visible" type="Button" parent="."]
+layout_mode = 0
+offset_left = 336.0
 offset_right = 384.0
-offset_bottom = 64.0
+offset_bottom = 48.0
+flat = true
+
+[node name="layername" type="LineEdit" parent="."]
+visible = false
+layout_mode = 0
+offset_left = 48.0
+offset_right = 240.0
+offset_bottom = 48.0
+theme_override_fonts/font = ExtResource("2_4wxgd")
+theme_override_font_sizes/font_size = 20
+text = "layer.name"
+alignment = 1
 flat = true
