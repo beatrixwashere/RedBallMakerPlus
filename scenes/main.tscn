@@ -23,6 +23,11 @@ points = PackedVector2Array(10000, 585, -10000, 585)
 width = 50.0
 default_color = Color(1, 0, 0, 0.75)
 
+[node name="blabel" type="Label" parent="level/death"]
+visible = false
+offset_right = 40.0
+offset_bottom = 23.0
+
 [node name="ui" type="Camera2D" parent="."]
 unique_name_in_owner = true
 texture_filter = 1
@@ -34,65 +39,25 @@ z_index = -100
 position = Vector2(-0.000324249, -2.28882e-05)
 scale = Vector2(1.61917, 1.59734)
 texture = ExtResource("1_iag8v")
+metadata/_edit_lock_ = true
 
 [node name="layout" type="Sprite2D" parent="ui"]
 texture_filter = 1
 position = Vector2(0, 3.05176e-05)
 scale = Vector2(8, 8.05926)
 texture = ExtResource("3_ujrmm")
+metadata/_edit_lock_ = true
 
 [node name="rbref" type="Sprite2D" parent="ui"]
 self_modulate = Color(1, 1, 1, 0.4)
 texture_filter = 1
 scale = Vector2(2, 2)
 texture = ExtResource("4_o1pps")
+metadata/_edit_lock_ = true
 
 [node name="menus" type="Node2D" parent="ui"]
 
-[node name="obj_edit" type="Control" parent="ui/menus"]
-layout_mode = 3
-anchors_preset = 0
-offset_left = 576.0
-offset_top = -448.0
-offset_right = 960.0
-offset_bottom = 320.0
-
-[node name="container" type="ScrollContainer" parent="ui/menus/obj_edit"]
-layout_mode = 0
-offset_right = 384.0
-offset_bottom = 768.0
-vertical_scroll_mode = 2
-
-[node name="editlist" type="VBoxContainer" parent="ui/menus/obj_edit/container"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/separation = 96
-
-[node name="scrollfix" type="Control" parent="ui/menus/obj_edit/container/editlist"]
-layout_mode = 2
-
-[node name="apply_edits" type="Button" parent="ui/menus/obj_edit"]
-layout_mode = 0
-offset_top = 768.0
-offset_right = 192.0
-offset_bottom = 896.0
-theme_override_fonts/font = ExtResource("4_efxvl")
-theme_override_font_sizes/font_size = 50
-text = "apply"
-flat = true
-
-[node name="delete_block" type="Button" parent="ui/menus/obj_edit"]
-layout_mode = 0
-offset_left = 192.0
-offset_top = 768.0
-offset_right = 384.0
-offset_bottom = 896.0
-theme_override_fonts/font = ExtResource("4_efxvl")
-theme_override_font_sizes/font_size = 50
-text = "delete"
-flat = true
-
-[node name="obj_list" type="Control" parent="ui/menus"]
+[node name="block_list" type="Control" parent="ui/menus"]
 layout_mode = 3
 anchors_preset = 0
 offset_left = -960.0
@@ -100,21 +65,21 @@ offset_top = -448.0
 offset_right = -576.0
 offset_bottom = 320.0
 
-[node name="container" type="ScrollContainer" parent="ui/menus/obj_list"]
+[node name="container" type="ScrollContainer" parent="ui/menus/block_list"]
 layout_mode = 0
 offset_right = 384.0
 offset_bottom = 768.0
 vertical_scroll_mode = 2
 
-[node name="blocklist" type="VBoxContainer" parent="ui/menus/obj_list/container"]
+[node name="blocklist" type="VBoxContainer" parent="ui/menus/block_list/container"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_constants/separation = 64
+theme_override_constants/separation = 48
 
-[node name="scrollfix" type="Control" parent="ui/menus/obj_list/container/blocklist"]
+[node name="scrollfix" type="Control" parent="ui/menus/block_list/container/blocklist"]
 layout_mode = 2
 
-[node name="new_polygon" type="Button" parent="ui/menus/obj_list"]
+[node name="new_polygon" type="Button" parent="ui/menus/block_list"]
 layout_mode = 0
 offset_top = 768.0
 offset_right = 96.0
@@ -123,12 +88,12 @@ theme_override_fonts/font = ExtResource("4_efxvl")
 theme_override_font_sizes/font_size = 60
 flat = true
 
-[node name="icon" type="Sprite2D" parent="ui/menus/obj_list/new_polygon"]
+[node name="icon" type="Sprite2D" parent="ui/menus/block_list/new_polygon"]
 position = Vector2(48, 64)
 scale = Vector2(6, 6)
 texture = ExtResource("6_xe8nl")
 
-[node name="new_circle" type="Button" parent="ui/menus/obj_list"]
+[node name="new_circle" type="Button" parent="ui/menus/block_list"]
 layout_mode = 0
 offset_left = 96.0
 offset_top = 768.0
@@ -138,12 +103,12 @@ theme_override_fonts/font = ExtResource("4_efxvl")
 theme_override_font_sizes/font_size = 60
 flat = true
 
-[node name="icon" type="Sprite2D" parent="ui/menus/obj_list/new_circle"]
+[node name="icon" type="Sprite2D" parent="ui/menus/block_list/new_circle"]
 position = Vector2(48, 64)
 scale = Vector2(6, 6)
 texture = ExtResource("7_cutm6")
 
-[node name="new_checkpoint" type="Button" parent="ui/menus/obj_list"]
+[node name="new_checkpoint" type="Button" parent="ui/menus/block_list"]
 layout_mode = 0
 offset_left = 192.0
 offset_top = 768.0
@@ -153,12 +118,12 @@ theme_override_fonts/font = ExtResource("4_efxvl")
 theme_override_font_sizes/font_size = 60
 flat = true
 
-[node name="icon" type="Sprite2D" parent="ui/menus/obj_list/new_checkpoint"]
+[node name="icon" type="Sprite2D" parent="ui/menus/block_list/new_checkpoint"]
 position = Vector2(48, 64)
 scale = Vector2(6, 6)
 texture = ExtResource("8_rn8fh")
 
-[node name="new_flag" type="Button" parent="ui/menus/obj_list"]
+[node name="new_flag" type="Button" parent="ui/menus/block_list"]
 layout_mode = 0
 offset_left = 288.0
 offset_top = 768.0
@@ -168,10 +133,100 @@ theme_override_fonts/font = ExtResource("4_efxvl")
 theme_override_font_sizes/font_size = 60
 flat = true
 
-[node name="icon" type="Sprite2D" parent="ui/menus/obj_list/new_flag"]
+[node name="icon" type="Sprite2D" parent="ui/menus/block_list/new_flag"]
 position = Vector2(48, 64)
 scale = Vector2(6, 6)
 texture = ExtResource("9_bv1hy")
+
+[node name="block_edit" type="Control" parent="ui/menus"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 3
+anchors_preset = 0
+offset_left = 576.0
+offset_top = -448.0
+offset_right = 960.0
+offset_bottom = 320.0
+
+[node name="container" type="ScrollContainer" parent="ui/menus/block_edit"]
+layout_mode = 0
+offset_right = 384.0
+offset_bottom = 768.0
+vertical_scroll_mode = 2
+
+[node name="editlist" type="VBoxContainer" parent="ui/menus/block_edit/container"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 64
+
+[node name="scrollfix" type="Control" parent="ui/menus/block_edit/container/editlist"]
+layout_mode = 2
+
+[node name="apply_edits" type="Button" parent="ui/menus/block_edit"]
+layout_mode = 0
+offset_top = 768.0
+offset_right = 192.0
+offset_bottom = 896.0
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 40
+text = "apply"
+flat = true
+
+[node name="delete_block" type="Button" parent="ui/menus/block_edit"]
+layout_mode = 0
+offset_left = 192.0
+offset_top = 768.0
+offset_right = 384.0
+offset_bottom = 896.0
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 40
+text = "delete"
+flat = true
+
+[node name="layers_list" type="Control" parent="ui/menus"]
+unique_name_in_owner = true
+layout_mode = 3
+anchors_preset = 0
+offset_left = 576.0
+offset_top = -448.0
+offset_right = 960.0
+offset_bottom = 320.0
+
+[node name="container" type="ScrollContainer" parent="ui/menus/layers_list"]
+layout_mode = 0
+offset_right = 384.0
+offset_bottom = 768.0
+vertical_scroll_mode = 2
+
+[node name="layerlist" type="VBoxContainer" parent="ui/menus/layers_list/container"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 48
+
+[node name="scrollfix" type="Control" parent="ui/menus/layers_list/container/layerlist"]
+layout_mode = 2
+
+[node name="add_layer" type="Button" parent="ui/menus/layers_list"]
+layout_mode = 0
+offset_top = 768.0
+offset_right = 192.0
+offset_bottom = 896.0
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 40
+text = "add"
+flat = true
+
+[node name="remove_layer" type="Button" parent="ui/menus/layers_list"]
+layout_mode = 0
+offset_left = 192.0
+offset_top = 768.0
+offset_right = 384.0
+offset_bottom = 896.0
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 40
+text = "delete
+"
+flat = true
 
 [node name="row_options" type="Control" parent="ui/menus"]
 layout_mode = 3
@@ -317,7 +372,7 @@ offset_right = 768.0
 offset_bottom = 96.0
 theme_override_fonts/font = ExtResource("4_efxvl")
 theme_override_font_sizes/font_size = 40
-text = "2x
+text = "zoom: 2x
 "
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -330,6 +385,28 @@ offset_bottom = 96.0
 theme_override_fonts/font = ExtResource("4_efxvl")
 theme_override_font_sizes/font_size = 40
 text = "gridsnap: off"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="blocklabels" type="Label" parent="ui/menus/row_info"]
+layout_mode = 0
+offset_left = 1152.0
+offset_right = 1536.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 40
+text = "blocklabels: on"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="fps" type="Label" parent="ui/menus/row_info"]
+layout_mode = 0
+offset_left = 1536.0
+offset_right = 1920.0
+offset_bottom = 96.0
+theme_override_fonts/font = ExtResource("4_efxvl")
+theme_override_font_sizes/font_size = 40
+text = "fps: 60"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -386,18 +463,21 @@ file_mode = 0
 access = 2
 filters = PackedStringArray("*.txt ; Text Files")
 
-[connection signal="button_down" from="ui/menus/obj_edit/apply_edits" to="." method="apply_edits"]
-[connection signal="button_down" from="ui/menus/obj_edit/delete_block" to="." method="delete_block"]
-[connection signal="button_down" from="ui/menus/obj_list/new_polygon" to="." method="new_block" binds= [0]]
-[connection signal="button_down" from="ui/menus/obj_list/new_circle" to="." method="new_block" binds= [1]]
-[connection signal="button_down" from="ui/menus/obj_list/new_checkpoint" to="." method="new_block" binds= [2]]
-[connection signal="button_down" from="ui/menus/obj_list/new_flag" to="." method="new_block" binds= [3]]
+[connection signal="button_down" from="ui/menus/block_list/new_polygon" to="." method="new_block" binds= [0]]
+[connection signal="button_down" from="ui/menus/block_list/new_circle" to="." method="new_block" binds= [1]]
+[connection signal="button_down" from="ui/menus/block_list/new_checkpoint" to="." method="new_block" binds= [2]]
+[connection signal="button_down" from="ui/menus/block_list/new_flag" to="." method="new_block" binds= [3]]
+[connection signal="button_down" from="ui/menus/block_edit/apply_edits" to="." method="apply_edits"]
+[connection signal="button_down" from="ui/menus/block_edit/delete_block" to="." method="delete_block"]
+[connection signal="button_down" from="ui/menus/layers_list/add_layer" to="." method="add_layer"]
+[connection signal="button_down" from="ui/menus/layers_list/remove_layer" to="." method="delete_layer"]
 [connection signal="button_down" from="ui/menus/row_options/export_level" to="files/export" method="set_visible" binds= [true]]
 [connection signal="button_down" from="ui/menus/row_options/export_save" to="files/save" method="set_visible" binds= [true]]
 [connection signal="button_down" from="ui/menus/row_options/import_save" to="files/load" method="set_visible" binds= [true]]
 [connection signal="button_down" from="ui/menus/row_options/import_level" to="files/import" method="set_visible" binds= [true]]
 [connection signal="button_down" from="ui/menus/row_options/tool_settings" to="ui/menus/row_options/tool_settings/settings" method="set_visible" binds= [true]]
 [connection signal="close_requested" from="ui/menus/row_options/tool_settings/settings" to="ui/menus/row_options/tool_settings/settings" method="set_visible" binds= [false]]
+[connection signal="window_input" from="ui/menus/row_options/tool_settings/settings" to="." method="_input"]
 [connection signal="button_down" from="ui/menus/row_options/clear_level" to="." method="clear_level"]
 [connection signal="button_down" from="ui/menus/row_options/exit_app" to="." method="exit_app"]
 [connection signal="file_selected" from="files/export" to="." method="export_level"]
