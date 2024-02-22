@@ -13,6 +13,10 @@ const icon_polygon:CompressedTexture2D = preload("res://images/icons/icon_polygo
 const icon_circle:CompressedTexture2D = preload("res://images/icons/icon_circle.png")
 const icon_checkpoint:CompressedTexture2D = preload("res://images/icons/icon_checkpoint.png")
 const icon_flag:CompressedTexture2D = preload("res://images/icons/icon_flag.png")
+const icon_layer:CompressedTexture2D = preload("res://images/icons/icon_layer.png")
+const icon_visible:CompressedTexture2D = preload("res://images/icons/icon_visible.png")
+const icon_hidden:CompressedTexture2D = preload("res://images/icons/icon_hidden.png")
+const kronika:Font = preload("res://images/kronika.ttf")
 # variables
 var keybinds:Dictionary = {
 	"move_up": KEY_W,
@@ -27,15 +31,20 @@ var keybinds:Dictionary = {
 	"new_checkpoint": KEY_3,
 	"new_flag": KEY_4,
 	"focus_block": KEY_F,
-	"toggle_gridsnap": KEY_X }
+	"toggle_gridsnap": KEY_X,
+	"toggle_blocklabels": KEY_C }
 # level
 var level_blocks:Dictionary
 var level_nidx:int = 0
 var level_selection:int = -1
+var layers_dict:Dictionary
+var layers_nidx:int = 0
+var layers_current:int = -1
 # input
 var shift_pressed:bool = false
 var ctrl_pressed:bool = false
 var gridsnap:bool = false
+var blocklabels:bool = true
 var is_moving_scene:bool = false
 var is_awaiting_input:bool = false
 var keybind_to_set:String
@@ -67,6 +76,8 @@ func _ready()->void:
 	%settings/container/keylist.get_child_count()-1)
 	# loads autosave if it exists
 	if FileAccess.file_exists("user://autosave.rbmpc"): import_save("user://autosave.rbmpc")
+	else: clear_level()
+	states.clear_list(states.undo)
 # handles input
 func _input(event:InputEvent)->void:
 	# keyboard
@@ -111,6 +122,10 @@ func _input(event:InputEvent)->void:
 				new_block(Block.blocktypes.FLAG)
 			if event.keycode == keybinds["toggle_gridsnap"]:
 				gridsnap = !gridsnap
+			if event.keycode == keybinds["toggle_blocklabels"]:
+				blocklabels = !blocklabels
+				for i in %level.get_children(): if i.name != "death":
+					for j in i.get_children(): j.get_node("blabel").visible = blocklabels
 		# block control
 		elif event.keycode == keybinds["focus_block"] && event.is_pressed():
 			%ui.position = level_blocks[level_selection].get_polyavg() \
@@ -120,7 +135,6 @@ func _input(event:InputEvent)->void:
 		if event.keycode == KEY_SHIFT: shift_pressed = event.is_pressed()
 		if event.keycode == KEY_CTRL: ctrl_pressed = event.is_pressed()
 		elif ctrl_pressed && event.is_pressed(): match event.keycode:
-			# TODO: implement redos
 			KEY_Z: states.load_undo() #if !shift_pressed else states.load_redo()
 			KEY_E: %files/export.visible = true
 			KEY_S: %files/save.visible = true
@@ -152,28 +166,29 @@ func _notification(what:int)->void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST: exit_app()
 # creates a new block in the level
 func new_block(n_type:int)->void:
-	states.add_undo()
-	# create and setup block data
-	var n_data:Block = Block.new()
-	n_data.name = str(level_nidx)
-	n_data.type = n_type
-	var targetpos:Vector2 = round(%ui.position/10)*10 if gridsnap else round(%ui.position)
-	if n_data.type == Block.blocktypes.POLYGON:
-		n_data.polygon.append(Vector2(0,0)+targetpos)
-		n_data.polygon.append(Vector2(50,0)+targetpos)
-		n_data.polygon.append(Vector2(50,50)+targetpos)
-		n_data.polygon.append(Vector2(0,50)+targetpos)
-	else:
-		n_data.position = targetpos
-		if n_data.type == Block.blocktypes.CHECKPOINT: n_data.position.y -= 21
-		if n_data.type == Block.blocktypes.FLAG: n_data.position.y -= 46
-	# add block to scene
-	new_levelobj(n_data)
-	# add block to list
-	new_listobj(n_data)
-	# finalization
-	level_blocks[level_nidx] = n_data
-	level_nidx += 1
+	if layers_current != -1:
+		states.add_undo()
+		# create and setup block data
+		var n_data:Block = Block.new()
+		n_data.name = str(level_nidx)
+		n_data.type = n_type
+		var targetpos:Vector2 = round(%ui.position/10)*10 if gridsnap else round(%ui.position)
+		if n_data.type == Block.blocktypes.POLYGON:
+			n_data.polygon.append(Vector2(0,0)+targetpos)
+			n_data.polygon.append(Vector2(50,0)+targetpos)
+			n_data.polygon.append(Vector2(50,50)+targetpos)
+			n_data.polygon.append(Vector2(0,50)+targetpos)
+		else:
+			n_data.position = targetpos
+			if n_data.type == Block.blocktypes.CHECKPOINT: n_data.position.y -= 21
+			if n_data.type == Block.blocktypes.FLAG: n_data.position.y -= 46
+		# add block to scene
+		new_levelobj(n_data)
+		# add block to list
+		new_listobj(n_data)
+		# finalization
+		level_blocks[level_nidx] = n_data
+		level_nidx += 1
 # helper function for making the levelobj
 func new_levelobj(bdata:Block)->void:
 	match bdata.type:
@@ -181,7 +196,7 @@ func new_levelobj(bdata:Block)->void:
 			var n_block_obj:Polygon2D = Polygon2D.new()
 			n_block_obj.set_color(bdata.fill)
 			n_block_obj.set_polygon(bdata.polygon)
-			%level.add_child(n_block_obj)
+			layers_dict[layers_current].levelobj.add_child(n_block_obj)
 			var n_block_outline:Line2D = Line2D.new()
 			n_block_outline.points = bdata.polygon
 			n_block_outline.closed = true
@@ -195,7 +210,7 @@ func new_levelobj(bdata:Block)->void:
 			n_block_obj.position = bdata.position
 			n_block_obj.scale = Vector2(bdata.radius/50,bdata.radius/50)
 			n_block_obj.self_modulate = bdata.outline
-			%level.add_child(n_block_obj)
+			layers_dict[layers_current].levelobj.add_child(n_block_obj)
 			var n_block_fill:Sprite2D = Sprite2D.new()
 			n_block_fill.texture = n_block_obj.texture
 			n_block_fill.scale = Vector2(0.95,0.95)
@@ -207,15 +222,30 @@ func new_levelobj(bdata:Block)->void:
 			n_block_obj.texture = checkpoint
 			n_block_obj.centered = false
 			n_block_obj.position = bdata.position
-			%level.add_child(n_block_obj)
+			layers_dict[layers_current].levelobj.add_child(n_block_obj)
 			bdata.levelobj = n_block_obj
 		Block.blocktypes.FLAG:
 			var n_block_obj:Sprite2D = Sprite2D.new()
 			n_block_obj.texture = flag
 			n_block_obj.centered = false
 			n_block_obj.position = bdata.position
-			%level.add_child(n_block_obj)
+			layers_dict[layers_current].levelobj.add_child(n_block_obj)
 			bdata.levelobj = n_block_obj
+	var block_label:Label = Label.new()
+	block_label.name = "blabel"
+	block_label.visible = blocklabels
+	block_label.text = bdata.name
+	block_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	block_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	block_label.size = Vector2(100,24)
+	block_label.position = (bdata.get_polyavg() if bdata.type == Block.blocktypes.POLYGON else \
+	Vector2(0,0)) - Vector2(50,12)
+	block_label.add_theme_color_override("font_outline_color", Color.BLACK)
+	block_label.add_theme_constant_override("outline_size", 5)
+	block_label.add_theme_font_override("font", kronika)
+	block_label.add_theme_font_size_override("font_size", 15 if \
+	bdata.type != Block.blocktypes.CIRCLE else int(750/bdata.radius))
+	bdata.levelobj.add_child(block_label)
 # helper function for making the listobj
 func new_listobj(bdata:Block)->void:
 	var n_block_list:Control = listblock.instantiate()
@@ -229,12 +259,21 @@ func new_listobj(bdata:Block)->void:
 	n_block_list.get_node("edit").connect("button_down", edit_block.bind(level_nidx))
 	n_block_list.get_node("move_up").connect("button_down", move_block.bind(level_nidx, true))
 	n_block_list.get_node("move_down").connect("button_down", move_block.bind(level_nidx, false))
+	n_block_list.get_node("icon_visible").texture = icon_visible if bdata.visible else icon_hidden
+	bdata.levelobj.visible = bdata.visible
+	n_block_list.get_node("toggle_visible").connect("button_down", func change_visibility()->void:
+		bdata.visible = !bdata.visible
+		n_block_list.get_node("icon_visible").texture = icon_visible if bdata.visible else icon_hidden
+		bdata.levelobj.visible = bdata.visible
+		pass)
 	%blocklist.add_child(n_block_list)
 	%blocklist.move_child(%blocklist/scrollfix, %blocklist.get_child_count()-1)
 	bdata.listobj = n_block_list
 # opens the block edit menu
 func edit_block(idx:int)->void:
 	close_edits()
+	%block_edit.visible = true
+	%layers_list.visible = false
 	# helper function for new list
 	var c_edit_obj:Callable = \
 	func c_edit_obj_func(i_name:String, i_type:String, i_var:Variant, i_popup:String = "")->void:
@@ -248,12 +287,6 @@ func edit_block(idx:int)->void:
 			n_edit_obj.get_node("popup_edit").visible = true
 			n_edit_obj.get_node("popup_edit").connect("button_down", \
 			n_edit_obj.get_node(i_popup).set_visible.bind(true))
-			if i_popup == "popup_points":
-				n_edit_obj.get_node("popup_edit").connect("button_down", open_points)
-				n_edit_obj.get_node("popup_points").connect("close_requested", \
-				func close_points()->void:
-					for i in level_blocks[level_selection].levelobj.get_child(0).get_children():
-						i.queue_free())
 			match i_popup:
 				"popup_color":
 					n_edit_obj.get_node("popup_color/color").color = i_var
@@ -272,12 +305,16 @@ func edit_block(idx:int)->void:
 						polylist.add_child(n_polydata)
 						polylist.move_child(n_polydata, polylist.get_child_count()-3))
 				"popup_points":
+					n_edit_obj.get_node("popup_edit").connect("button_down", open_points)
+					n_edit_obj.get_node("popup_points").connect("close_requested", \
+					func close_points()->void:
+						for i in level_blocks[level_selection].levelobj.get_child(0).get_children():
+							i.queue_free())
 					n_edit_obj.get_node("popup_points/applypoints/button").connect("button_down", \
 					func apply_points()->void:
-						level_blocks[idx].polygon.clear()
-						var polylist:Node = n_edit_obj.get_node("popup_polygon/container/editlist")
+						var polylist:Node = %editlist.get_node("polygon/popup_polygon/container/editlist")
+						for i in polylist.get_child_count()-2: polylist.get_child(0).free()
 						for i in level_blocks[idx].levelobj.get_child(0).get_children():
-							level_blocks[idx].polygon.append(i.position+Vector2(4,4))
 							var n_polydata:Node = polydata.instantiate()
 							n_polydata.get_node("xcoord").text = str(i.position.x+4)
 							n_polydata.get_node("ycoord").text = str(i.position.y+4)
@@ -323,50 +360,54 @@ func open_points()->void:
 		n_block_button.connect("button_down", func set_point_to_move()->void:
 			point_to_move = n_block_button)
 		n_block_button.connect("button_up", func remove_point_to_move()->void:
-			point_to_move.position = round(point_to_move.position / 10) * 10 \
+			point_to_move.position = round(point_to_move.position/10)*10-Vector2(4,4)\
 			if gridsnap else round(point_to_move.position)
 			point_to_move = null)
 # applies block edits
 func apply_edits()->void:
+	var lvlblk:Block = level_blocks[level_selection]
+	var lvlobj:Node = level_blocks[level_selection].levelobj
 	if level_selection != -1:
 		states.add_undo()
 		# set block data
-		level_blocks[level_selection].name = %editlist.get_node("name/edit").text
-		if level_blocks[level_selection].type == Block.blocktypes.POLYGON || \
-		level_blocks[level_selection].type == Block.blocktypes.CIRCLE:
-			level_blocks[level_selection].flags = %editlist.get_node("flags/edit").text
-			level_blocks[level_selection].mass = %editlist.get_node("mass/edit").text.to_float()
-			level_blocks[level_selection].friction = %editlist.get_node("friction/edit").text.to_float()
-			level_blocks[level_selection].restitution = %editlist.get_node("restitution/edit").text.to_float()
-			level_blocks[level_selection].fill = %editlist.get_node("fill/popup_color/color").color
-			level_blocks[level_selection].outline = %editlist.get_node("outline/popup_color/color").color
-		if level_blocks[level_selection].type == Block.blocktypes.POLYGON:
-			level_blocks[level_selection].polygon = PackedVector2Array()
+		lvlblk.name = %editlist.get_node("name/edit").text
+		if lvlblk.type == Block.blocktypes.POLYGON || lvlblk.type == Block.blocktypes.CIRCLE:
+			lvlblk.flags = %editlist.get_node("flags/edit").text
+			lvlblk.mass = %editlist.get_node("mass/edit").text.to_float()
+			lvlblk.friction = %editlist.get_node("friction/edit").text.to_float()
+			lvlblk.restitution = %editlist.get_node("restitution/edit").text.to_float()
+			lvlblk.fill = %editlist.get_node("fill/popup_color/color").color
+			lvlblk.outline = %editlist.get_node("outline/popup_color/color").color
+		if lvlblk.type == Block.blocktypes.POLYGON:
+			lvlblk.polygon = PackedVector2Array()
 			for i in %editlist.get_node("polygon/popup_polygon/container/editlist").get_children():
-				if i.name != "addpoint" && i.name != "scrollfix": \
-				level_blocks[level_selection].polygon.append(Vector2( \
-				i.get_node("xcoord").text.to_int(), i.get_node("ycoord").text.to_int()))
+				if i.name != "addpoint" && i.name != "scrollfix":
+					lvlblk.polygon.append(Vector2( \
+					i.get_node("xcoord").text.to_int(), i.get_node("ycoord").text.to_int()))
 		else:
-			level_blocks[level_selection].position.x = %editlist.get_node("x-position/edit").text.to_int()
-			level_blocks[level_selection].position.y = %editlist.get_node("y-position/edit").text.to_int()
-		if level_blocks[level_selection].type == Block.blocktypes.CIRCLE:
-			level_blocks[level_selection].radius = %editlist.get_node("radius/edit").text.to_int()
+			lvlblk.position.x = %editlist.get_node("x-position/edit").text.to_int()
+			lvlblk.position.y = %editlist.get_node("y-position/edit").text.to_int()
+		if lvlblk.type == Block.blocktypes.CIRCLE:
+			lvlblk.radius = %editlist.get_node("radius/edit").text.to_int()
 		# apply data to scene
-		if level_blocks[level_selection].type == Block.blocktypes.POLYGON:
-			level_blocks[level_selection].levelobj.polygon = level_blocks[level_selection].polygon
-			level_blocks[level_selection].levelobj.color = level_blocks[level_selection].fill
-			level_blocks[level_selection].levelobj.get_child(0).points = level_blocks[level_selection].polygon
-			level_blocks[level_selection].levelobj.get_child(0).default_color = level_blocks[level_selection].outline
-		if level_blocks[level_selection].type == Block.blocktypes.CIRCLE:
-			level_blocks[level_selection].levelobj.position = level_blocks[level_selection].position
-			level_blocks[level_selection].levelobj.scale = Vector2( \
-			level_blocks[level_selection].radius/50,level_blocks[level_selection].radius/50)
-			level_blocks[level_selection].levelobj.self_modulate = level_blocks[level_selection].outline
-			level_blocks[level_selection].levelobj.get_child(0).self_modulate = level_blocks[level_selection].fill
-		if level_blocks[level_selection].type == Block.blocktypes.CHECKPOINT || \
-		level_blocks[level_selection].type == Block.blocktypes.FLAG:
-			level_blocks[level_selection].levelobj.position = level_blocks[level_selection].position
-		level_blocks[level_selection].listobj.get_node("text").text = level_blocks[level_selection].name
+		if lvlblk.type == Block.blocktypes.POLYGON:
+			lvlobj.polygon = lvlblk.polygon
+			lvlobj.color = lvlblk.fill
+			lvlobj.get_child(0).points = lvlblk.polygon
+			lvlobj.get_child(0).default_color = lvlblk.outline
+		if lvlblk.type == Block.blocktypes.CIRCLE:
+			lvlobj.position = lvlblk.position
+			lvlobj.scale = Vector2(lvlblk.radius/50,lvlblk.radius/50)
+			lvlobj.self_modulate = lvlblk.outline
+			lvlobj.get_child(0).self_modulate = lvlblk.fill
+		if lvlblk.type == Block.blocktypes.CHECKPOINT || lvlblk.type == Block.blocktypes.FLAG:
+			lvlobj.position = lvlblk.position
+		lvlblk.listobj.get_node("text").text = lvlblk.name
+		lvlobj.get_node("blabel").text = lvlblk.name
+		lvlobj.get_node("blabel").position = (lvlblk.get_polyavg() if \
+		lvlblk.type == Block.blocktypes.POLYGON else Vector2(0,0)) - Vector2(50,12)
+		lvlobj.get_node("blabel").add_theme_font_size_override("font_size", 15 if \
+		lvlblk.type != Block.blocktypes.CIRCLE else int(750/lvlblk.radius))
 		close_edits()
 # removes the edit list
 func close_edits()->void:
@@ -375,6 +416,8 @@ func close_edits()->void:
 		%editlist.remove_child(i)
 	%editlist.add_child(Control.new())
 	level_selection = -1
+	%block_edit.visible = false
+	%layers_list.visible = true
 # moves the block's z index
 func move_block(idx:int, dir:bool)->void:
 	states.add_undo()
@@ -404,26 +447,118 @@ func delete_block()->void:
 		level_blocks[level_selection].listobj.queue_free()
 		level_blocks.erase(level_selection)
 		level_selection = -1
+# adds a layer to the level
+func add_layer()->void:
+	# set up layer data
+	states.add_undo()
+	var n_layer:Layer = Layer.new()
+	n_layer.name = str(layers_nidx)
+	n_layer.blklist = %blocklist
+	# add layer level node
+	layer_levelobj(n_layer)
+	# add layer list node
+	layer_listobj(n_layer)
+	# finalization
+	layers_dict[layers_nidx] = n_layer
+	var cidx:int = layers_nidx
+	select_layer(cidx)
+	layers_nidx += 1
+# creates layer levelobj
+func layer_levelobj(ldata:Layer)->void:
+	var n_layer_level:Node2D = Node2D.new()
+	n_layer_level.name = str(layers_nidx)
+	%level.add_child(n_layer_level)
+	ldata.levelobj = n_layer_level
+# creates layer listobj
+func layer_listobj(ldata:Layer)->void:
+	var n_layer_list:Control = listblock.instantiate()
+	n_layer_list.name = str(layers_nidx)
+	n_layer_list.get_node("icon").texture = icon_layer
+	n_layer_list.get_node("text").visible = false
+	n_layer_list.get_node("layername").visible = true
+	n_layer_list.get_node("layername").text = str(layers_nidx)
+	n_layer_list.get_node("layername").connect("text_submitted", func rename_layer(ntext:String)->void:
+		ldata.name = ntext)
+	var cidx:int = layers_nidx
+	n_layer_list.get_node("edit").connect("button_down", select_layer.bind(cidx))
+	n_layer_list.get_node("move_up").connect("button_down", move_layer.bind(layers_nidx, true))
+	n_layer_list.get_node("move_down").connect("button_down", move_layer.bind(layers_nidx, false))
+	n_layer_list.get_node("toggle_visible").connect("button_down", func layer_vistoggle()->void:
+		ldata.visible = !ldata.visible
+		ldata.levelobj.visible = ldata.visible
+		n_layer_list.get_node("icon_visible").texture = icon_visible if ldata.visible else icon_hidden)
+	%layerlist.add_child(n_layer_list)
+	%layerlist.move_child(n_layer_list, %layerlist.get_child_count()-2)
+	ldata.listobj = n_layer_list
+# switches to a different layer
+func select_layer(cidx:int)->void:
+	if layers_dict.has(cidx):
+		if layers_dict.has(layers_current): layers_dict[layers_current].store_layer(level_blocks)
+		level_blocks.clear()
+		layers_current = cidx
+		for i in %blocklist.get_children(): i.free()
+		level_nidx = 0
+		var n_scrollfix:Control = Control.new()
+		%blocklist.add_child(n_scrollfix)
+		n_scrollfix.name = "scrollfix"
+		for i in layers_dict[layers_current].blocks:
+			level_blocks[level_nidx] = i
+			new_listobj(i)
+			level_nidx += 1
+# moves a layer in the list
+func move_layer(lidx:int, dir:bool)->void:
+	states.add_undo()
+	# change the layer child index
+	if dir && shift_pressed: %layerlist.move_child(%layerlist.get_node(str(lidx)), 0)
+	elif !dir && shift_pressed: %layerlist.move_child(%layerlist.get_node(str(lidx)), %layerlist.get_child_count()-2)
+	elif dir && %layerlist.get_node(str(lidx)).get_index()-1 >= 0:
+		%layerlist.move_child(%layerlist.get_node(str(lidx)), %layerlist.get_node(str(lidx)).get_index()-1)
+	elif !dir && %layerlist.get_node(str(lidx)).get_index()+1 <= %layerlist.get_child_count()-2:
+		%layerlist.move_child(%layerlist.get_node(str(lidx)), %layerlist.get_node(str(lidx)).get_index()+1)
+# remoes the current layer
+func delete_layer()->void:
+	states.add_undo()
+	layers_dict[layers_current].levelobj.free()
+	layers_dict[layers_current].listobj.free()
+	for i in layers_dict[layers_current].blocks: delete_block()
+	layers_dict.erase(layers_current)
+	layers_current = -1
 # clears the entire level
 func clear_level()->void:
 	states.add_undo()
 	# clear data and scene
 	level_blocks.clear()
-	for i in %level.get_children(): i.queue_free()
+	layers_dict.clear()
+	for i in %level.get_children(): i.free()
 	for i in %blocklist.get_children(): i.free()
-	for i in %editlist.get_children(): i.queue_free()
+	for i in %editlist.get_children(): i.free()
+	for i in %layerlist.get_children(): i.free()
+	level_selection = -1
+	layers_current = -1
 	# recreate death barrier
 	var level_death:Line2D = Line2D.new()
+	level_death.name = "death"
 	level_death.points = [Vector2(10000,585),Vector2(-10000,585)]
 	level_death.width = 50
 	level_death.default_color = Color(1,0,0,0.75)
 	%level.add_child(level_death)
-	# recreate scrollfix
-	var n_scrollfix:Control = Control.new()
-	%blocklist.add_child(n_scrollfix)
-	n_scrollfix.name = "scrollfix"
-	# reset nidx
+	var blabel:Label = Label.new()
+	blabel.name = "blabel"
+	level_death.add_child(blabel)
+	# recreate scrollfixes
+	var n_scrollfix_0:Control = Control.new()
+	var n_scrollfix_1:Control = Control.new()
+	%blocklist.add_child(n_scrollfix_0)
+	%layerlist.add_child(n_scrollfix_1)
+	n_scrollfix_0.name = "scrollfix"
+	n_scrollfix_1.name = "scrollfix"
+	# reset nidxs
 	level_nidx = 0
+	layers_nidx = 0
+	# add main layer
+	add_layer()
+	layers_dict[0].name = "main"
+	%layerlist.get_node("0/layername").text = "main"
 # updates the settings file
 func apply_settings()->void:
 	var settingsfile:FileAccess = FileAccess.open("user://settings.rbmpc",FileAccess.WRITE)
@@ -431,9 +566,10 @@ func apply_settings()->void:
 # exports the level to a txt file
 func export_level(filepath:String)->void:
 	# generate level string
+	select_layer(layers_current)
 	var export_string:String = ""
-	for i in %blocklist.get_children():
-		if i.name != "scrollfix": export_string += level_blocks[i.name.to_int()].encode_level()
+	for i in %layerlist.get_children():
+		if i.name != "scrollfix": export_string += layers_dict[i.name.to_int()].encode_level()
 	# save file
 	var levelfile:FileAccess = FileAccess.open(filepath, FileAccess.WRITE)
 	levelfile.store_line(export_string)
@@ -455,32 +591,56 @@ func import_level(filepath:String)->void:
 # exports the level as an rbmp save
 func export_save(filepath:String)->void:
 	# save file
+	if layers_current != -1: select_layer(layers_current)
 	var savefile:FileAccess = FileAccess.open(filepath, FileAccess.WRITE)
-	savefile.store_32(level_blocks.size())
-	for i in %blocklist.get_children():
-		if i.name != "scrollfix": level_blocks[i.name.to_int()].save_data(savefile)
+	savefile.store_16(layers_dict.size())
+	for i in %layerlist.get_children():
+		if i.name != "scrollfix": layers_dict[i.name.to_int()].save_data(savefile)
+	savefile.store_16(layers_current if layers_current > -1 else 0)
 # imports the level from an rbmp save
 func import_save(filepath:String)->void:
 	# clear level
 	clear_level()
+	delete_layer()
+	layers_nidx = 0
 	# load file
 	var savefile:FileAccess = FileAccess.open(filepath, FileAccess.READ)
-	var level_size:int = savefile.get_32()
+	var level_size:int = savefile.get_16()
 	for i in level_size:
-		# load block data
-		var n_data:Block = Block.new()
-		n_data.load_data(savefile)
+		# load layer data
+		var n_layer:Layer = Layer.new()
+		layers_current = layers_nidx
+		n_layer.load_data(savefile)
+		n_layer.blklist = %blocklist
+		layers_dict[layers_nidx] = n_layer
 		# create levelobj
-		new_levelobj(n_data)
+		for j in %blocklist.get_children(): j.free()
+		layer_levelobj(n_layer)
+		level_nidx = 0
+		level_blocks.clear()
+		var n_scrollfix:Control = Control.new()
+		%blocklist.add_child(n_scrollfix)
+		n_scrollfix.name = "scrollfix"
+		for j in n_layer.blocks:
+			new_levelobj(j)
+			new_listobj(j)
+			level_blocks[level_nidx] = j
+			level_nidx += 1
+		select_layer(layers_nidx)
 		# create listobj
-		new_listobj(n_data)
-		level_blocks[level_nidx] = n_data
-		level_nidx += 1
+		layer_listobj(n_layer)
+		n_layer.listobj.get_node("layername").text = n_layer.name
+		layers_nidx += 1
+	layers_current = savefile.get_16()
+	select_layer(layers_current)
 # updates row_info text
 func update_info()->void:
 	$ui/menus/row_info/position.text = "( "+str(round(%ui.position.x))+" , "+str(round(%ui.position.y))+" )"
-	$ui/menus/row_info/zoom.text = str(snapped(%ui.zoom.x,0.1))+"x"
+	$ui/menus/row_info/zoom.text = "zoom: "+str(snapped(%ui.zoom.x,0.1))+"x"
 	$ui/menus/row_info/gridsnap.text = "gridsnap: "+("on" if gridsnap else "off")
+	$ui/menus/row_info/blocklabels.text = "blocklabels: "+("on" if blocklabels else "off")
+	$ui/menus/row_info/fps.text = "fps: "+str(Performance.get_monitor(Performance.TIME_FPS)) #\
+	#+" + "+str(snapped(Performance.get_monitor(Performance.MEMORY_STATIC)/1048576.0,0.01))
 # closes the application
 func exit_app()->void:
 	# autosave the level
