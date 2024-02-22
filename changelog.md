@@ -15,7 +15,15 @@
 - redos will be implemented in v.1.1.1
 - use x to toggle gridsnap, placing blocks at the nearest multiple of 10
 - fixed a crash that occurred when pressing apply without a block selected
-- 
+- polygons can now be edited by clicking and dragging their vertices
+- to use this feature, click on the edit button next to points
+- settings window now doesn't require you to click out of the window to rebind
+- use c to toggle block name labels
+- frames per second is now shown in the info row
+- block visibility can now be toggled
+- ui list nodes are shorter
+- changed the move up and down in list icons
+- added layers (THANK FUCKING GOD ITS OVER THAT TOOK SO LONG)
 
 ---
 
