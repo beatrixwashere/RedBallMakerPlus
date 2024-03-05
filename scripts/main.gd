@@ -32,7 +32,8 @@ var keybinds:Dictionary = {
 	"new_flag": KEY_4,
 	"focus_block": KEY_F,
 	"toggle_gridsnap": KEY_X,
-	"toggle_blocklabels": KEY_C }
+	"toggle_blocklabels": KEY_C,
+	"move_block": KEY_T}
 # level
 var level_blocks:Dictionary
 var level_nidx:int = 0
@@ -46,6 +47,8 @@ var ctrl_pressed:bool = false
 var gridsnap:bool = false
 var blocklabels:bool = true
 var is_moving_scene:bool = false
+var is_moving_block:bool = false
+var is_mbone_down:bool = false
 var is_awaiting_input:bool = false
 var keybind_to_set:String
 var keytext_to_update:Node
@@ -131,17 +134,21 @@ func _input(event:InputEvent)->void:
 			%ui.position = level_blocks[level_selection].get_polyavg() \
 			if level_blocks[level_selection].type == Block.blocktypes.POLYGON else \
 			level_blocks[level_selection].position
+		elif event.keycode == keybinds["move_block"] && event.is_pressed():
+			is_moving_block = !is_moving_block
 		# global control
 		if event.keycode == KEY_SHIFT: shift_pressed = event.is_pressed()
 		if event.keycode == KEY_CTRL: ctrl_pressed = event.is_pressed()
 		elif ctrl_pressed && event.is_pressed(): match event.keycode:
 			KEY_Z: states.load_undo() #if !shift_pressed else states.load_redo()
-			KEY_E: %files/export.visible = true
+			KEY_E: %files/export.set_visible(true) if !shift_pressed else export_level()
 			KEY_S: %files/save.visible = true
 			KEY_O: %files/load.visible = true
 	# mouse buttons
 	if event is InputEventMouseButton:
 		match event.button_index:
+			MOUSE_BUTTON_LEFT:
+				is_mbone_down = event.is_pressed()
 			MOUSE_BUTTON_RIGHT:
 				is_moving_scene = event.is_pressed()
 			MOUSE_BUTTON_WHEEL_UP:
@@ -156,10 +163,10 @@ func _input(event:InputEvent)->void:
 					%ui/rbref.scale = %ui.zoom
 	# mouse motion
 	if event is InputEventMouseMotion:
-		if is_moving_scene:
-			%ui.position -= event.relative/%ui.zoom.x
-		if point_to_move:
-			point_to_move.position += event.relative/%ui.zoom.x
+		if is_moving_scene: %ui.position -= event.relative/%ui.zoom.x
+		if point_to_move: point_to_move.position += event.relative/%ui.zoom.x
+		if is_moving_block && is_mbone_down && level_blocks.has(level_selection):
+			level_blocks[level_selection].levelobj.position += event.relative/%ui.zoom.x
 	update_info()
 # handle notifications
 func _notification(what:int)->void:
@@ -181,7 +188,7 @@ func new_block(n_type:int)->void:
 		else:
 			n_data.position = targetpos
 			if n_data.type == Block.blocktypes.CHECKPOINT: n_data.position.y -= 21
-			if n_data.type == Block.blocktypes.FLAG: n_data.position.y -= 46
+			if n_data.type == Block.blocktypes.FLAG: n_data.position.y -= 25
 		# add block to scene
 		new_levelobj(n_data)
 		# add block to list
@@ -228,6 +235,7 @@ func new_levelobj(bdata:Block)->void:
 			var n_block_obj:Sprite2D = Sprite2D.new()
 			n_block_obj.texture = flag
 			n_block_obj.centered = false
+			n_block_obj.offset.y = -21
 			n_block_obj.position = bdata.position
 			layers_dict[layers_current].levelobj.add_child(n_block_obj)
 			bdata.levelobj = n_block_obj
@@ -395,6 +403,7 @@ func apply_edits()->void:
 			lvlobj.color = lvlblk.fill
 			lvlobj.get_child(0).points = lvlblk.polygon
 			lvlobj.get_child(0).default_color = lvlblk.outline
+			for i in lvlobj.get_child(0).get_children(): i.queue_free()
 		if lvlblk.type == Block.blocktypes.CIRCLE:
 			lvlobj.position = lvlblk.position
 			lvlobj.scale = Vector2(lvlblk.radius/50,lvlblk.radius/50)
@@ -433,7 +442,7 @@ func move_block(idx:int, dir:bool)->void:
 	elif !dir && shift_pressed: %level.move_child(level_blocks[idx].levelobj, %level.get_child_count()-1)
 	if dir && level_blocks[idx].levelobj.get_index()-1 >= 0:
 		%level.move_child(level_blocks[idx].levelobj, level_blocks[idx].levelobj.get_index()-1)
-	elif !dir && level_blocks[idx].listobj.get_index()+1 <= %level.get_child_count()-1:
+	elif !dir && level_blocks[idx].levelobj.get_index()+1 <= %level.get_child_count()-1:
 		%level.move_child(level_blocks[idx].levelobj, level_blocks[idx].levelobj.get_index()+1)
 # deletes the selected block
 func delete_block()->void:
@@ -443,8 +452,8 @@ func delete_block()->void:
 		for i in %editlist.get_children(): 
 			i.queue_free()
 		%editlist.add_child(Control.new())
-		level_blocks[level_selection].levelobj.queue_free()
-		level_blocks[level_selection].listobj.queue_free()
+		level_blocks[level_selection].levelobj.free()
+		level_blocks[level_selection].listobj.free()
 		level_blocks.erase(level_selection)
 		level_selection = -1
 # adds a layer to the level
@@ -520,6 +529,7 @@ func delete_layer()->void:
 	states.add_undo()
 	layers_dict[layers_current].levelobj.free()
 	layers_dict[layers_current].listobj.free()
+	for i in %blocklist.get_children(): i.free()
 	for i in layers_dict[layers_current].blocks: delete_block()
 	layers_dict.erase(layers_current)
 	layers_current = -1
@@ -564,15 +574,18 @@ func apply_settings()->void:
 	var settingsfile:FileAccess = FileAccess.open("user://settings.rbmpc",FileAccess.WRITE)
 	for i in keybinds.values(): settingsfile.store_32(i)
 # exports the level to a txt file
-func export_level(filepath:String)->void:
+func export_level(filepath:String = "")->void:
 	# generate level string
 	select_layer(layers_current)
 	var export_string:String = ""
 	for i in %layerlist.get_children():
 		if i.name != "scrollfix": export_string += layers_dict[i.name.to_int()].encode_level()
 	# save file
-	var levelfile:FileAccess = FileAccess.open(filepath, FileAccess.WRITE)
-	levelfile.store_line(export_string)
+	if filepath != "":
+		var levelfile:FileAccess = FileAccess.open(filepath, FileAccess.WRITE)
+		levelfile.store_line(export_string)
+	else:
+		DisplayServer.clipboard_set(export_string)
 func import_level(filepath:String)->void:
 	# clear level
 	clear_level()
@@ -593,9 +606,12 @@ func export_save(filepath:String)->void:
 	# save file
 	if layers_current != -1: select_layer(layers_current)
 	var savefile:FileAccess = FileAccess.open(filepath, FileAccess.WRITE)
+	savefile.store_16(2) #saveformat
 	savefile.store_16(layers_dict.size())
 	for i in %layerlist.get_children():
-		if i.name != "scrollfix": layers_dict[i.name.to_int()].save_data(savefile)
+		if i.name != "scrollfix":
+			layers_dict[i.name.to_int()].save_data(savefile)
+			savefile.store_16(i.name.to_int())
 	savefile.store_16(layers_current if layers_current > -1 else 0)
 # imports the level from an rbmp save
 func import_save(filepath:String)->void:
@@ -605,12 +621,14 @@ func import_save(filepath:String)->void:
 	layers_nidx = 0
 	# load file
 	var savefile:FileAccess = FileAccess.open(filepath, FileAccess.READ)
+	var saveformat:int = savefile.get_16()
 	var level_size:int = savefile.get_16()
 	for i in level_size:
 		# load layer data
 		var n_layer:Layer = Layer.new()
-		layers_current = layers_nidx
 		n_layer.load_data(savefile)
+		if saveformat > 1: layers_nidx = savefile.get_16()
+		layers_current = layers_nidx
 		n_layer.blklist = %blocklist
 		layers_dict[layers_nidx] = n_layer
 		# create levelobj

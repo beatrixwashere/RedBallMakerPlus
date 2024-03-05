@@ -301,7 +301,7 @@ vertical_scroll_mode = 2
 
 [node name="keylist" type="VBoxContainer" parent="ui/menus/row_options/tool_settings/settings/container"]
 layout_mode = 2
-theme_override_constants/separation = 96
+theme_override_constants/separation = 64
 
 [node name="scrollfix" type="Control" parent="ui/menus/row_options/tool_settings/settings/container/keylist"]
 layout_mode = 2

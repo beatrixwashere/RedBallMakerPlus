@@ -1,3 +1,9 @@
+# v.1.1.1
+- fixed a bug where pressing apply in the edit menu didnt remove the polygon points
+- fixed a bug where deleting a layer would keep its blocks in the list, which would crash on selection
+- fixed a bug where the checkpoints/flags displayed in rbmp didn't line up with the actual level
+- use ctrl+shift+e to copy the export txt to your clipboard
+
 # v.1.1.0
 - block list is now layered such that the bottom is in front
 - adding blocks puts them at the bottom of the list
