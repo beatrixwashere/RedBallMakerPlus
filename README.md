@@ -54,7 +54,7 @@ in order to contribute to this project, please follow this guide:
 
 ## credits
 
-- thequeenbea, for creating this project and the entire tool
+- beatrixwashere, for creating this project and the entire tool
 - smartcube, for making the original red ball maker, as well as the player swf included in the releases
 - [godot](https://godotengine.org/), for making the engine used for this tool
 - [desmos](https://www.desmos.com/calculator/), for making the calculator used for the logo
