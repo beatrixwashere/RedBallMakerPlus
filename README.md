@@ -2,6 +2,10 @@
 
 ---
 
+the release files have been removed to avoid possible copyright issues. sorry :[
+
+---
+
 ## about
 
 red ball maker plus is an advanced tool for creating custom levels in red ball. to play these levels, run the `rbmaker_player.swf` file in a flash player (both are included in the releases).
